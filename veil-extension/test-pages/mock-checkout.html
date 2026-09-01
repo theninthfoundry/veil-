@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Checkout — demo store</title>
+<style>
+  :root {
+    --paper: #F5F4F0;
+    --ink: #14151A;
+    --signal: #33449E;
+    --line: #DAD8D1;
+    --muted: #6B6A63;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 15px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 48px 24px;
+  }
+  main {
+    width: 100%;
+    max-width: 420px;
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 24px;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin: 16px 0 4px;
+  }
+  input, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--ink);
+    font-family: inherit;
+  }
+  input:focus, textarea:focus {
+    outline: 2px solid var(--signal);
+    outline-offset: 1px;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 64px;
+  }
+  button {
+    margin-top: 24px;
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .row {
+    display: flex;
+    gap: 12px;
+  }
+  .row > div {
+    flex: 1;
+  }
+  p.hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 32px;
+  }
+</style>
+</head>
+<body>
+  <main>
+    <h1>Checkout</h1>
+    <form onsubmit="event.preventDefault();">
+      <label for="fullname">Full name</label>
+      <input id="fullname" name="fullname" autocomplete="name" type="text" value="Sreeshanth Reddy">
+
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" value="sreeshanth@example.com">
+
+      <div class="row">
+        <div>
+          <label for="card">Card number</label>
+          <input id="card" name="card_number" autocomplete="cc-number" type="text" value="4111 1111 1111 1111">
+        </div>
+        <div>
+          <label for="cvv">CVV</label>
+          <input id="cvv" name="cvv" autocomplete="cc-csc" type="text" value="421">
+        </div>
+      </div>
+
+      <label for="address">Shipping address</label>
+      <input id="address" name="address" autocomplete="street-address" type="text" value="Hyderabad, Telangana">
+
+      <label for="notes">Delivery notes (optional)</label>
+      <textarea id="notes" name="notes">Call me at 555-234-7890 if the gate is locked.</textarea>
+
+      <button type="submit">Place order</button>
+    </form>
+    <p class="hint">Load the VEIL extension, then open its popup — fields above should show redaction bars and a live count.</p>
+  </main>
+</body>
+</html>
