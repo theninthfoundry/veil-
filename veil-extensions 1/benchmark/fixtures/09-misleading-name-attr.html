@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+  Adversarial fixture: tests whether the detector over-trusts the `name`
+  attribute. This field is named "promo_code" but its placeholder and
+  surrounding label make clear it actually collects a card number. A
+  detector that only checks `name`/`autocomplete` attributes and never
+  falls back to content-shape validation on ambiguous fields will miss this.
+-->
+<html lang="en">
+<head><meta charset="UTF-8"><title>Fixture 09 — misleading name attribute</title></head>
+<body>
+  <form id="checkout">
+    <label for="promo">Card number</label>
+    <input id="promo" name="promo_code" type="text" placeholder="1234 5678 9012 3456" />
+
+    <label for="promo-cvv">Security code</label>
+    <input id="promo-cvv" name="promo_extra" type="text" placeholder="123" />
+
+    <button type="submit">Apply</button>
+  </form>
+</body>
+</html>

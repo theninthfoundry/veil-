@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--
+  Adversarial fixture: a checkout layout structured the way real e-commerce
+  sites commonly are (grouped fieldsets, a billing/shipping toggle, inline
+  validation spans, a newsletter opt-in checkbox with no PII) — structurally
+  representative of a real page, not a page the detector's author designed
+  around a specific rule. Field naming intentionally uses varied real-world
+  conventions rather than the clean autocomplete-attribute values used in
+  the other fixtures.
+-->
+<html lang="en">
+<head><meta charset="UTF-8"><title>Fixture 10 — realistic third-party checkout</title></head>
+<body>
+  <form id="checkout-form">
+    <fieldset>
+      <legend>Contact</legend>
+      <input id="contact_email" name="contactEmail" type="email" placeholder="you@example.com" />
+      <span class="field-error" id="contact_email_error" hidden>Enter a valid email</span>
+    </fieldset>
+
+    <fieldset>
+      <legend>Shipping address</legend>
+      <input id="ship_fullname" name="shipFullName" autocomplete="name" type="text" placeholder="Full name" />
+      <input id="ship_line1" name="shipAddressLine1" autocomplete="address-line1" type="text" placeholder="Street address" />
+      <input id="ship_phone" name="shipPhone" type="tel" autocomplete="tel" placeholder="+91 98765 43210" />
+    </fieldset>
+
+    <fieldset>
+      <legend>Payment</legend>
+      <input id="pay_number" name="cardNum" inputmode="numeric" type="text" placeholder="Card number" />
+      <input id="pay_exp" name="cardExpiry" type="text" placeholder="MM/YY" />
+      <input id="pay_csc" name="cardCSC" type="password" placeholder="CVC" />
+    </fieldset>
+
+    <label>
+      <input type="checkbox" id="newsletter_optin" name="newsletterOptin" />
+      Send me deals and updates (not personal data)
+    </label>
+
+    <button type="submit" id="place-order-btn">Review order</button>
+  </form>
+</body>
+</html>
