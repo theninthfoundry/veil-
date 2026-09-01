@@ -1,0 +1,10 @@
+{
+  "checkout.html": { "name": 1, "email": 1, "credit_card": 2, "address": 1 },
+  "login.html": { "email": 1, "password": 1 },
+  "signup.html": { "name": 1, "email": 1, "phone": 1, "password": 2 },
+  "contact-form.html": { "name": 1, "email": 1, "phone": 1 },
+  "negative-control.html": {},
+  "healthcare-form.html": { "name": 1, "phone": 1, "address": 1 },
+  "kyc-summary.html": { "aadhaar": 1, "pan": 1, "email": 1 },
+  "receipt.html": { "credit_card": 1 }
+}
