@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "VEIL — privacy firewall for browser agents",
+  "version": "0.1.0",
+  "description": "Detects and redacts PII locally, before any page context would be sent to a server agent. Phase 1: DOM/regex detection and on-page redaction.",
+  "permissions": ["activeTab", "tabs"],
+  "background": {
+    "service_worker": "background/background.js"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "VEIL — privacy observatory"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["core/detector.js", "content/redactor.js", "content/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

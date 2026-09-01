@@ -1,0 +1,12 @@
+{
+  "name": "veil-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Privacy-preserving browser agent — ISRO SIH: On-device Visual Perception for Light-weight Browser Agents",
+  "scripts": {
+    "benchmark": "node benchmark/run-benchmark.js"
+  },
+  "devDependencies": {
+    "jsdom": "^30.0.1"
+  }
+}
