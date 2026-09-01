@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>VEIL</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="veil-header">
+    <div class="veil-title-row">
+      <span class="veil-dot" id="statusDot" aria-hidden="true"></span>
+      <h1>VEIL</h1>
+    </div>
+    <label class="veil-toggle">
+      <input type="checkbox" id="enabledToggle" checked>
+      <span>On</span>
+    </label>
+  </header>
+
+  <p class="veil-phase-note">Phase 1 — local DOM/regex detection. No server round-trip yet.</p>
+
+  <section class="veil-metrics">
+    <div class="veil-metric">
+      <p class="veil-metric-label">Fields redacted</p>
+      <p class="veil-metric-value" id="totalCount">0</p>
+    </div>
+    <div class="veil-metric">
+      <p class="veil-metric-label">Detect + redact</p>
+      <p class="veil-metric-value" id="latencyValue">&mdash;</p>
+    </div>
+  </section>
+
+  <section class="veil-breakdown" id="breakdown">
+    <p class="veil-empty" id="emptyState">Nothing detected on this page yet.</p>
+  </section>
+
+  <script src="../core/detector.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
