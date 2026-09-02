@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>NetBanking Dashboard — ICICI Bank</title></head>
+<body>
+  <header>
+    <h1>Welcome back, Rajesh Kumar Sharma</h1>
+    <p>Last login: 01 Sep 2026, 14:32 IST</p>
+  </header>
+
+  <section id="account-summary">
+    <h2>Account Summary</h2>
+    <table>
+      <tr><th>Account</th><td>XXXX XXXX 4523</td></tr>
+      <tr><th>IFSC</th><td>ICIC0001234</td></tr>
+      <tr><th>Branch</th><td>Koramangala, Bengaluru</td></tr>
+    </table>
+  </section>
+
+  <section id="upi">
+    <h2>UPI Details</h2>
+    <p>Your registered UPI ID: <strong>rajesh.sharma@icici</strong></p>
+    <p>Linked mobile: +91 98765-43210</p>
+  </section>
+
+  <section id="recent-transactions">
+    <h2>Recent Transactions</h2>
+    <table>
+      <tr>
+        <td>TXN-20260901-0045782</td>
+        <td>Amazon.in</td>
+        <td>₹4,299.00</td>
+      </tr>
+      <tr>
+        <td>TXN-20260831-0045623</td>
+        <td>Swiggy</td>
+        <td>₹589.00</td>
+      </tr>
+    </table>
+    <!-- TXN IDs are 17-digit numeric-ish strings — a naïve detector could
+         mistake them for phone numbers or card numbers. They shouldn't match. -->
+  </section>
+
+  <section id="beneficiaries">
+    <h2>Saved Beneficiaries</h2>
+    <p>Priya Patel — HDFC, A/C ending 8821, IFSC: HDFC0002345</p>
+    <p>Amit Desai — SBI, A/C ending 1190, IFSC: SBIN0003456</p>
+  </section>
+
+  <footer>
+    <p>For support, call 1800-200-3344 (toll-free) or email support@icicibank.com</p>
+  </footer>
+</body>
+</html>
