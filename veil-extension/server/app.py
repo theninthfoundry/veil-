@@ -25,7 +25,9 @@ from pydantic import BaseModel, ConfigDict
 
 from vlm_client import ACTION_TYPES, get_vlm_client
 
-app = FastAPI(title="VEIL server", version="0.2.0")
+app = FastAPI(
+    docs_url='/docs',
+    redoc_url=None,title="VEIL server", version="0.2.0")
 
 # CORS for Chrome Extension requests (content script / service worker origin)
 app.add_middleware(
