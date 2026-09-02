@@ -11,7 +11,8 @@
     "test:resolver": "node benchmark/run-resolver-test.js",
     "test:security": "node benchmark/run-security-test.js",
     "test:attacks": "node benchmark/run-adversarial-attacks.js",
-    "test:ablation": "node benchmark/run-ablation-study.js"
+    "test:ablation": "node benchmark/run-ablation-study.js",
+    "test:report": "powershell -ExecutionPolicy Bypass -File ../scripts/generate-report.ps1"
   },
   "devDependencies": {
     "jsdom": "^30.0.1"
