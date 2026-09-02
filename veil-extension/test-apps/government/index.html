@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>National Identity &amp; e-KYC Verification Portal</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 32px; }
+    .container { max-width: 650px; margin: 0 auto; background: #1e293b; padding: 28px; border-radius: 12px; border: 1px solid #334155; }
+    h1 { font-size: 20px; color: #f59e0b; }
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+    input { width: 100%; box-sizing: border-box; padding: 10px; background: #0f172a; border: 1px solid #475569; border-radius: 6px; color: #fff; font-size: 13px; }
+    .btn-verify { width: 100%; padding: 14px; background: linear-gradient(135deg, #d97706, #b45309); border: none; border-radius: 8px; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>National Citizen e-KYC Portal</h1>
+    <p style="color: #94a3b8; font-size: 13px;">Secure Identity Verification for Digital Services</p>
+
+    <form id="ekycForm" onsubmit="event.preventDefault(); alert('e-KYC Verified!');">
+      <div class="form-group">
+        <label for="citizenName">Full Name (as per Aadhaar)</label>
+        <input type="text" id="citizenName" value="Sreeshanth Reddy">
+      </div>
+      <div class="form-group">
+        <label for="aadhaarUid">12-Digit Aadhaar UID Number</label>
+        <input type="text" id="aadhaarUid" value="1234 5678 9012">
+      </div>
+      <div class="form-group">
+        <label for="panNumber">10-Digit Permanent Account Number (PAN)</label>
+        <input type="text" id="panNumber" value="ABCDE1234F">
+      </div>
+      <div class="form-group">
+        <label for="registeredPhone">Registered Mobile Number</label>
+        <input type="tel" id="registeredPhone" value="+91 98765-43210">
+      </div>
+
+      <button type="submit" id="btnVerifyEkyc" class="btn-verify">Verify e-KYC &amp; Issue Certificate</button>
+    </form>
+  </div>
+</body>
+</html>
