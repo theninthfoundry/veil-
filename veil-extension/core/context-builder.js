@@ -19,7 +19,12 @@
    * @param {Array<{element: Element|null}>} detections — from scanForPII, used only to set the `sensitive` flag
    * @returns {{ elements: Array<{id: string, tag: string, type: string|null, label: string, sensitive: boolean}> }}
    */
-  function buildSanitizedContext(document, detections) {
+  /**
+ * Builds structural context stripped of all field values.
+ * @param {Document} document - Target webpage document
+ * @param {Array<Object>} detections - PII detections
+ */
+function buildSanitizedContext(document, detections) {
     const sensitiveElements = new Set((detections || []).map((d) => d.element).filter(Boolean));
     const nodes = document.querySelectorAll(INTERACTIVE_SELECTOR);
     const elements = [];
