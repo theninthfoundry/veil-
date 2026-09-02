@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Order Confirmation — Flipkart</title></head>
+<body>
+  <header>
+    <h1>Order Confirmed!</h1>
+    <p>Order #FK-26090178452312 placed on 01 Sep 2026</p>
+    <!-- That order number has 14 digits — long enough to be a credit card
+         candidate. But it fails Luhn, so it should NOT be flagged. -->
+  </header>
+
+  <section id="delivery">
+    <h2>Delivery Address</h2>
+    <p>Ananya Krishnan</p>
+    <p>Flat 302, Block B, Prestige Lakeside Habitat</p>
+    <p>Whitefield, Bengaluru, Karnataka 560066</p>
+    <p>Phone: 080-4567-8901</p>
+  </section>
+
+  <section id="payment">
+    <h2>Payment Details</h2>
+    <p>Paid via: HDFC Visa ending in 4532</p>
+    <p>Amount: ₹12,499.00</p>
+    <p>Billing email: ananya.k@gmail.com</p>
+  </section>
+
+  <section id="items">
+    <h2>Items Ordered</h2>
+    <ul>
+      <li>Samsung Galaxy S24 Ultra — SKU: SM-S928BZKDINS — ₹12,499.00</li>
+    </ul>
+    <!-- SKU is alphanumeric, should not match anything -->
+  </section>
+
+  <section id="seller">
+    <h2>Sold by</h2>
+    <p>RetailNet (GST: 29AABCT1332Q1ZP)</p>
+    <!-- GST numbers look somewhat like PAN (5 letters + 4 digits + 1 letter
+         + more). The detector shouldn't flag GST as PAN — it's a different
+         format. But this is a known hard edge case. -->
+  </section>
+</body>
+</html>
