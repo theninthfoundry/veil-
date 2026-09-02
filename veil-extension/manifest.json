@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "VEIL — privacy firewall for browser agents",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "description": "See locally. Reason remotely. Reveal nothing sensitive. On-device visual perception & privacy firewall for browser agents.",
   "permissions": ["activeTab", "tabs", "storage"],
   "host_permissions": [
@@ -21,19 +21,26 @@
     {
       "matches": ["http://*/*", "https://*/*", "file:///*"],
       "js": [
+        "core/session.js",
+        "core/policy-engine.js",
         "core/dom-utils.js",
         "core/detector.js",
+        "core/visual-ocr.js",
+        "core/network-forensics.js",
         "core/secret-vault.js",
         "core/failure-analyzer.js",
+        "core/mutation-guard.js",
         "core/context-builder.js",
         "core/privacy-audit.js",
         "core/risk-classifier.js",
         "core/security-ledger.js",
         "core/action-resolver.js",
         "core/action-executor.js",
+        "core/workflow-runner.js",
         "core/agent-orchestrator.js",
         "core/comparison-builder.js",
         "content/redactor.js",
+        "content/high-risk-confirmation.js",
         "content/vision-fallback.js",
         "content/inspector-overlay.js",
         "content/content.js"
@@ -43,7 +50,12 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["vendor/transformers.web.min.js"],
+      "resources": [
+        "vendor/transformers.web.min.js",
+        "command-center/command-center.html",
+        "command-center/command-center.css",
+        "command-center/command-center.js"
+      ],
       "matches": ["http://*/*", "https://*/*", "file:///*"]
     }
   ],
