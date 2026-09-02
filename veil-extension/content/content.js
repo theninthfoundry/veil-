@@ -51,16 +51,20 @@
   }
 
   function sendStats(latencyMs, barsDrawn) {
-    const payload = {
-      counts: countByType(lastDetections),
-      totalDetections: lastDetections.length,
-      barsDrawn,
-      latencyMs,
-      telemetry: lastTelemetry,
-      url: location.href,
-      timestamp: Date.now(),
-    };
-    chrome.runtime.sendMessage({ type: 'VEIL_STATS', payload }).catch(() => {});
+    try {
+      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id && chrome.runtime.sendMessage) {
+        const payload = {
+          counts: countByType(lastDetections),
+          totalDetections: lastDetections.length,
+          barsDrawn,
+          latencyMs,
+          telemetry: lastTelemetry,
+          url: location.href,
+          timestamp: Date.now(),
+        };
+        chrome.runtime.sendMessage({ type: 'VEIL_STATS', payload }).catch(() => {});
+      }
+    } catch (_) {}
   }
 
   function scanAndRedact() {

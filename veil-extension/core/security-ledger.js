@@ -34,9 +34,13 @@
       ledger.pop();
     }
 
-    // Persist to session storage if in extension context
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.session) {
-      chrome.storage.session.set({ veilLedger: ledger.slice(0, 30) }).catch(() => {});
+    // Persist to session storage if in valid extension context
+    try {
+      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id && chrome.storage && chrome.storage.session) {
+        chrome.storage.session.set({ veilLedger: ledger.slice(0, 30) }).catch(() => {});
+      }
+    } catch (_) {
+      // Extension context was invalidated on tab before reload
     }
 
     return event;
@@ -49,9 +53,11 @@
 
   function clearLedger() {
     ledger = [];
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.session) {
-      chrome.storage.session.remove('veilLedger').catch(() => {});
-    }
+    try {
+      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id && chrome.storage && chrome.storage.session) {
+        chrome.storage.session.remove('veilLedger').catch(() => {});
+      }
+    } catch (_) {}
   }
 
   const securityLedgerExport = { recordEvent, getLedger, clearLedger };

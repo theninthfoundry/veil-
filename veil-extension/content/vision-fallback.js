@@ -92,42 +92,46 @@
   async function detectFaces(mediaElements) {
     if (!mediaElements || mediaElements.length === 0) return [];
 
-    const detector = await getDetector();
-    const results = [];
+    try {
+      const detector = await getDetector();
+      if (!detector) return [];
 
-    for (const el of mediaElements) {
-      const captured = captureFrame(el);
-      if (!captured) continue;
+      const results = [];
 
-      const rect = el.getBoundingClientRect();
-      const scaleX = rect.width / captured.naturalWidth;
-      const scaleY = rect.height / captured.naturalHeight;
+      for (const el of mediaElements) {
+        const captured = captureFrame(el);
+        if (!captured) continue;
 
-      // eslint-disable-next-line no-await-in-loop -- sequential on purpose,
-      // this is already the expensive path; don't also spike memory running
-      // every media element's inference concurrently.
-      const detections = await detector(captured.dataUrl, CANDIDATE_LABELS, {
-        threshold: THRESHOLD,
-        percentage: false,
-      });
+        const rect = el.getBoundingClientRect();
+        const scaleX = rect.width / captured.naturalWidth;
+        const scaleY = rect.height / captured.naturalHeight;
 
-      for (const d of detections) {
-        results.push({
-          type: 'face',
-          method: 'vision',
-          confidence: d.score,
-          element: el,
-          box: {
-            left: rect.left + d.box.xmin * scaleX,
-            top: rect.top + d.box.ymin * scaleY,
-            width: (d.box.xmax - d.box.xmin) * scaleX,
-            height: (d.box.ymax - d.box.ymin) * scaleY,
-          },
+        const detections = await detector(captured.dataUrl, CANDIDATE_LABELS, {
+          threshold: THRESHOLD,
+          percentage: false,
         });
-      }
-    }
 
-    return results;
+        for (const d of detections) {
+          results.push({
+            type: 'face',
+            method: 'vision',
+            confidence: d.score,
+            element: el,
+            box: {
+              left: rect.left + d.box.xmin * scaleX,
+              top: rect.top + d.box.ymin * scaleY,
+              width: (d.box.xmax - d.box.xmin) * scaleX,
+              height: (d.box.ymax - d.box.ymin) * scaleY,
+            },
+          });
+        }
+      }
+
+      return results;
+    } catch (_) {
+      // Vision fallback gracefully yields to DOM + Regex perception layer
+      return [];
+    }
   }
 
   window.VeilVisionFallback = { detectFaces };
