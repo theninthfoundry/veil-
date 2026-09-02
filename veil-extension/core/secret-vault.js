@@ -77,6 +77,7 @@
    * @returns {Array<{secretId: string, label: string, type: string, maskedDisplay: string, allowedOrigins: string[]}>}
    */
   function getSecretMetadata() {
+    // Returns sanitized vault inventory for UI inspector
     return inMemoryVault.map(({ secretId, label, type, maskedDisplay, allowedOrigins, allowedFields }) => ({
       secretId,
       label,
