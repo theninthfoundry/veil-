@@ -103,6 +103,7 @@
 
     // Check #2: scan the serialized payload for residual PII
     const serialized = JSON.stringify(context);
+  const payloadSizeBytes = new TextEncoder().encode(serialized).length;
     const payloadLeaks = _scanPayloadForPII(serialized);
 
     // Also scan the task instruction (if attacker tries to smuggle PII through the task field)
