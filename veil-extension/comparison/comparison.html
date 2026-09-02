@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEIL — Zero-Leakage Privacy Comparison</title>
+<link rel="stylesheet" href="comparison.css">
+</head>
+<body>
+  <div class="comparison-container">
+    <header class="comp-header">
+      <div class="comp-title-row">
+        <div class="brand">
+          <span class="dot"></span>
+          <h1>VEIL</h1>
+          <span class="sub-badge">PRIVACY FIREWALL PROOF</span>
+        </div>
+        <div class="invariant-badge pass">
+          <span class="pass-dot">●</span> PRIVACY INVARIANT P1: VERIFIED (0 LEAKS)
+        </div>
+      </div>
+      <p class="subtitle">
+        Direct side-by-side comparison of user perception on-device versus the sanitized semantic representation transmitted across the network boundary.
+      </p>
+    </header>
+
+    <!-- Data Flow Banner -->
+    <div class="flow-banner">
+      <div class="flow-step">
+        <span class="flow-icon">🖥️</span>
+        <div class="flow-info">
+          <span class="flow-label">LOCAL BROWSER</span>
+          <span class="flow-val" id="localFieldCount">0 Fields Perceived</span>
+        </div>
+      </div>
+      <div class="flow-arrow">
+        <span class="flow-pill">LOCAL REDACTION &amp; AUDIT</span>
+        <div class="animated-line"></div>
+      </div>
+      <div class="flow-step">
+        <span class="flow-icon">☁️</span>
+        <div class="flow-info">
+          <span class="flow-label">REMOTE REASONER</span>
+          <span class="flow-val highlight" id="serverLeakCount">0 Raw Values Sent</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Comparison Split View -->
+    <main id="panels" class="panels-grid">
+      <!-- Left Panel: What You See -->
+      <section class="panel panel-left">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <span class="panel-icon">👤</span>
+            <h2>What You See (Local Device)</h2>
+          </div>
+          <span class="panel-badge local">RAW CLIENT DOM</span>
+        </div>
+        <div class="panel-body rows" id="realRows"></div>
+      </section>
+
+      <!-- Right Panel: What the Server Sees -->
+      <section class="panel panel-right">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <span class="panel-icon">🤖</span>
+            <h2>What the Server Sees (Remote AI)</h2>
+          </div>
+          <span class="panel-badge remote">SANITIZED CONTEXT ONLY</span>
+        </div>
+        <div class="panel-body rows" id="sanitizedRows"></div>
+      </section>
+    </main>
+
+    <!-- Footer Summary Metrics -->
+    <footer class="comp-footer">
+      <div class="summary-card" id="summaryCard">
+        <div class="summary-metrics">
+          <div class="metric-block">
+            <span class="m-val" id="metricTotal">0</span>
+            <span class="m-lbl">Total Elements</span>
+          </div>
+          <div class="metric-block">
+            <span class="m-val highlight-green" id="metricRedacted">0</span>
+            <span class="m-lbl">Sensitive Redacted</span>
+          </div>
+          <div class="metric-block">
+            <span class="m-val highlight-cyan" id="metricTransmitted">0.00%</span>
+            <span class="m-lbl">Leakage Rate</span>
+          </div>
+          <div class="metric-block">
+            <span class="m-val" id="metricStatus">PASS</span>
+            <span class="m-lbl">Firewall Gate</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="comparison.js"></script>
+</body>
+</html>
