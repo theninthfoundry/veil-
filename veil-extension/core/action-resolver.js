@@ -15,6 +15,7 @@
 
   const VEIL_ID_RE = /^el-\d+$/;
   const MIN_MATCH_SCORE = 0.3;
+  const EXACT_MATCH_SCORE = 1.0;
 
   /**
    * @param {{id?: string, description?: string}} target
