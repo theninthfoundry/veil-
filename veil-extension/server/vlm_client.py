@@ -137,7 +137,7 @@ class OllamaVLMClient:
 
     async def decide(self, task: str, elements: list[dict]) -> dict:
         prompt = self._build_prompt(task, elements)
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(30.0, connect=5.0)) as client:
             resp = await client.post(
                 f"{self.base_url}/api/generate",
                 json={"model": self.model, "prompt": prompt, "format": "json", "stream": False},
