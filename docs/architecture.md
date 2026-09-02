@@ -79,3 +79,7 @@ Rather than granting an AI agent monolithic control over the browser, VEIL separ
 | **Redaction & Leakage Prevention** | 20% | **0.00% Leakage Rate** verified by automated network Privacy Audit Firewall. |
 | **Client Resource Utilization** | 20% | Conditional vision triggering keeps idle RAM `< 120MB` and scan time `< 30ms`. |
 | **End-to-End Latency** | 15% | Sub-50ms local perception + redaction; instrumented telemetry waterfall. |
+
+## Regulatory Compliance Matrix
+- **DPDP Act (India)**: Strict on-device redaction ensures no biometric or financial IDs leave client perimeter.
+- **GDPR Article 25**: Privacy by Design & Default enforced via pre-flight privacy firewall.
