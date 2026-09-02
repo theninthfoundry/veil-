@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Form Step 3 of 5</title></head>
+<body>
+  <h1>Additional Details</h1>
+  <form action="/submit" method="post">
+    <!-- No labels, no autocomplete, generic names — the worst-case form
+         for a DOM-attribute scanner. PII must be caught by content regex
+         or not at all. Each field has a realistic prefilled value. -->
+
+    <div>
+      <span class="field-label">Field 1</span>
+      <input type="text" name="field_1" id="data_1" value="Vikram Singh Chauhan">
+    </div>
+    <div>
+      <span class="field-label">Field 2</span>
+      <input type="text" name="field_2" id="data_2" value="vikram.chauhan@outlook.com">
+    </div>
+    <div>
+      <span class="field-label">Field 3</span>
+      <input type="text" name="field_3" id="data_3" value="+91 98123-45678">
+    </div>
+    <div>
+      <span class="field-label">Field 4</span>
+      <input type="text" name="field_4" id="data_4" value="4532015112830366">
+      <!-- Luhn-valid Visa test number -->
+    </div>
+    <div>
+      <span class="field-label">Field 5</span>
+      <textarea name="field_5" id="data_5">My Aadhaar is 2345 6789 0123 and PAN is BNZPM2501F</textarea>
+    </div>
+    <div>
+      <span class="field-label">Notes</span>
+      <textarea name="field_6" id="data_6">Please deliver between 10 AM and 2 PM</textarea>
+      <!-- No PII here — should not match -->
+    </div>
+
+    <button type="submit">Continue</button>
+  </form>
+</body>
+</html>
