@@ -5,8 +5,9 @@
  *   1. Hard Step Budget (MAX_STEPS = 5) to prevent runaway loops.
  *   2. Re-perceive after EVERY action (protects against DOM mutation attacks).
  *   3. Finite State Machine:
- *      IDLE -> PERCEIVING -> AUDITING -> REASONING -> VALIDATING -> EXECUTING -> RE_PERCEIVING -> FINISHED | BLOCKED
- *   4. Step-by-Step Telemetry & Tamper-Evident Ledger Logging.
+ *      IDLE -> PERCEIVING -> AUDITING -> REASONING -> VALIDATING -> WAITING_FOR_HUMAN -> REVALIDATING -> EXECUTING -> RE_PERCEIVING -> FINISHED | BLOCKED
+ *   4. Human-in-the-Loop Confirmation Gate on HIGH_RISK actions.
+ *   5. Step-by-Step Telemetry & Tamper-Evident Ledger Logging.
  */
 
 (function () {
@@ -19,9 +20,10 @@
     AUDITING: 'AUDITING',
     REASONING: 'REASONING',
     VALIDATING: 'VALIDATING',
+    WAITING_FOR_HUMAN: 'WAITING_FOR_HUMAN',
+    REVALIDATING: 'REVALIDATING',
     EXECUTING: 'EXECUTING',
     RE_PERCEIVING: 'RE_PERCEIVING',
-    WAITING_CONFIRMATION: 'WAITING_CONFIRMATION',
     FINISHED: 'FINISHED',
     BLOCKED: 'BLOCKED',
     FAILED: 'FAILED',
@@ -29,7 +31,7 @@
   };
 
   /**
-   * Orchestrates multi-step autonomous goal execution.
+   * Orchestrates multi-step autonomous goal execution with human confirmation gating.
    */
   async function runAutonomousLoop(taskInstruction, callbacks = {}) {
     const {
@@ -41,6 +43,8 @@
       callServerFn,
       resolveTargetFn,
       classifyRiskFn,
+      confirmationFn = () => Promise.resolve(true),
+      verifyIntegrityFn = () => ({ valid: true }),
       executeActionFn,
       recordEventFn,
       delayMs = 400
@@ -118,9 +122,9 @@
         return result;
       }
 
-      // --- STEP 4: VALIDATION & DOM RESOLUTION ---
+      // --- STEP 4: VALIDATION & RISK CLASSIFICATION ---
       state = STATES.VALIDATING;
-      const targetElement = resolveTargetFn(action.target, document);
+      let targetElement = resolveTargetFn(action.target, document);
       const risk = classifyRiskFn(action, targetElement, sensitiveElements);
 
       recordEventFn('ACTION_RISK_EVALUATED', 'safety_guard', { step: currentStep, level: risk.level, allowed: risk.allowed, reason: risk.reason });
@@ -141,9 +145,60 @@
         return result;
       }
 
+      // --- STEP 4b: HIGH-RISK HUMAN CONFIRMATION GATE ---
+      if (risk.level === 'HIGH_RISK' || risk.requiresConfirmation) {
+        state = STATES.WAITING_FOR_HUMAN;
+        onStepUpdate({
+          step: currentStep,
+          state,
+          message: `Step ${currentStep}: ⚠ HIGH_RISK Action Proposed ("${(action.target && action.target.description) || 'Purchase'}") — Awaiting Human Confirmation...`
+        });
+        recordEventFn('HUMAN_CONFIRMATION_REQUESTED', 'safety_guard', { step: currentStep, action: action.action, target: action.target });
+
+        // Genuinely pause FSM awaiting human click
+        const userApproved = await confirmationFn({
+          action,
+          targetElement,
+          riskInfo: risk,
+          origin: (typeof location !== 'undefined' && location.origin) || 'Local Origin'
+        });
+
+        if (!userApproved) {
+          state = STATES.BLOCKED;
+          recordEventFn('HUMAN_CONFIRMATION_DENIED', 'safety_guard', { step: currentStep });
+          stepTraces.push({
+            step: currentStep,
+            action: action.action,
+            target: (action.target && (action.target.description || action.target.text)) || 'High Risk Action',
+            durationMs: Math.round(performance.now() - stepT0),
+            status: 'BLOCKED',
+            reason: 'User denied confirmation or authorization expired'
+          });
+          const result = { ok: false, state, reason: 'High-risk action aborted: explicit human authorization was denied or timed out.', stepTraces, totalMs: Math.round(performance.now() - t0) };
+          onComplete(result);
+          return result;
+        }
+
+        recordEventFn('HUMAN_CONFIRMATION_APPROVED', 'safety_guard', { step: currentStep });
+
+        // --- STEP 4c: PRE-EXECUTION REVALIDATION (State integrity after modal) ---
+        state = STATES.REVALIDATING;
+        const integrityCheck = verifyIntegrityFn(action, targetElement, document);
+        if (!integrityCheck.valid) {
+          state = STATES.BLOCKED;
+          recordEventFn('MUTATION_TRAP_BLOCKED', 'safety_guard', { step: currentStep, reason: integrityCheck.reason });
+          const result = { ok: false, state, reason: `Action aborted after approval: ${integrityCheck.reason}`, stepTraces, totalMs: Math.round(performance.now() - t0) };
+          onComplete(result);
+          return result;
+        }
+        if (integrityCheck.resolvedElement) {
+          targetElement = integrityCheck.resolvedElement;
+        }
+      }
+
       // --- STEP 5: EXECUTION ---
       state = STATES.EXECUTING;
-      const execResult = executeActionFn(action, targetElement, sensitiveElements, window.location.hostname);
+      const execResult = executeActionFn(action, targetElement, sensitiveElements, (typeof location !== 'undefined' && location.hostname) || 'localhost');
       const stepDuration = Math.round(performance.now() - stepT0);
 
       stepTraces.push({
@@ -161,7 +216,7 @@
           step: currentStep,
           secretId: execResult.secretId,
           target: (action.target && action.target.description) || 'DOM element',
-          origin: window.location.hostname
+          origin: (typeof location !== 'undefined' && location.hostname) || 'localhost'
         });
       }
 
