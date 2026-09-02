@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>DigiLocker — Document Verification</title></head>
+<body>
+  <header>
+    <h1>Issued Documents</h1>
+    <p>Verified identity for: <strong>Sunita Devi Gupta</strong></p>
+  </header>
+
+  <section id="aadhaar-details">
+    <h2>Aadhaar Card</h2>
+    <div class="doc-card">
+      <p>Name: Sunita Devi Gupta</p>
+      <p>Aadhaar Number: <span class="masked">9012 3456 7890</span></p>
+      <p>Date of Birth: 15/03/1985</p>
+      <p>Address: 42, MG Road, Sector 14, Gurgaon, Haryana 122001</p>
+    </div>
+  </section>
+
+  <section id="pan-details">
+    <h2>PAN Card</h2>
+    <div class="doc-card">
+      <p>Name: SUNITA DEVI GUPTA</p>
+      <p>PAN: <span class="highlight">ABCPG1234D</span></p>
+      <p>Father's Name: RAM PRASAD GUPTA</p>
+    </div>
+  </section>
+
+  <section id="voter-id">
+    <h2>Voter ID (EPIC)</h2>
+    <div class="doc-card">
+      <p>EPIC No: XYZ1234567</p>
+      <p>Constituency: Gurgaon — 14</p>
+    </div>
+  </section>
+
+  <section id="driving-license">
+    <h2>Driving License</h2>
+    <div class="doc-card">
+      <p>DL No: HR-0620190012345</p>
+      <p>Valid till: 14/03/2039</p>
+    </div>
+  </section>
+
+  <!-- No form fields at all — every piece of PII is in visible text.
+       This is the hardest case for a DOM-attribute-only scanner. -->
+</body>
+</html>
