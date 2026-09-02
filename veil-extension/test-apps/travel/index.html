@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SkyWings — Flight Booking Portal</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1e1b4b; color: #f8fafc; padding: 32px; }
+    .container { max-width: 650px; margin: 0 auto; background: #312e81; padding: 28px; border-radius: 12px; border: 1px solid #4338ca; }
+    h1 { font-size: 22px; color: #c7d2fe; }
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 12px; color: #a5b4fc; margin-bottom: 4px; }
+    input { width: 100%; box-sizing: border-box; padding: 10px; background: #1e1b4b; border: 1px solid #4338ca; border-radius: 6px; color: #fff; font-size: 13px; }
+    .btn-book { width: 100%; padding: 14px; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; border-radius: 8px; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SkyWings Airlines — Flight Search &amp; Booking</h1>
+    <p style="color: #a5b4fc; font-size: 13px;">Direct Flight AI-772 • BLR ➔ DEL (14 Oct 2026)</p>
+
+    <form id="travelForm" onsubmit="event.preventDefault(); alert('Flight Booked!');">
+      <div class="form-group">
+        <label for="passengerName">Primary Passenger Name</label>
+        <input type="text" id="passengerName" value="Sreeshanth Reddy">
+      </div>
+      <div class="form-group">
+        <label for="passportNumber">Passport / Govt Photo ID</label>
+        <input type="text" id="passportNumber" value="Z9876543">
+      </div>
+      <div class="form-group">
+        <label for="seatPreference">Seat Selection</label>
+        <input type="text" id="seatPreference" value="12A (Window)">
+      </div>
+      <div class="form-group">
+        <label for="paymentCard">Payment Card</label>
+        <input type="text" id="paymentCard" value="5555 4444 3333 2222">
+      </div>
+
+      <button type="submit" id="btnBookFlight" class="btn-book">Pay ₹6,240 &amp; Confirm Booking</button>
+    </form>
+  </div>
+</body>
+</html>
