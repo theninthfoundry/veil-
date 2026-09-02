@@ -427,3 +427,7 @@ h1 {
   overflow-y: auto;
   line-height: 1.4;
 }
+
+/* Smooth transition for active case selection */
+.case-card { transition: transform 0.15s ease, border-color 0.15s ease; }
+.case-card:hover { transform: translateY(-1px); }
