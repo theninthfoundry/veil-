@@ -108,7 +108,8 @@
     // Also scan the task instruction (if attacker tries to smuggle PII through the task field)
     const taskLeaks = task ? _scanPayloadForPII(task) : [];
 
-    const allLeaks = [
+    const auditDurationMs = Math.round(performance.now() - timestamp);
+  const allLeaks = [
       ...valueLeaks.map((el) => ({ type: 'value_leak', match: `element ${el.id} contains value` })),
       ...payloadLeaks,
       ...taskLeaks.map((l) => ({ ...l, type: `task_${l.type}` })),
