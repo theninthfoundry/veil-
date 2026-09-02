@@ -526,6 +526,13 @@
     });
   }
 
+  // Keyboard shortcut listener: Escape key closes live inspector
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && inspectorActive) {
+      toggleInspector(false);
+    }
+  });
+
   const inspectorExport = { toggleInspector, updateHUD, logTimeline };
   if (typeof module !== 'undefined' && module.exports) module.exports = inspectorExport;
   if (typeof window !== 'undefined') window.VeilInspector = inspectorExport;
