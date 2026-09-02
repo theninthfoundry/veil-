@@ -171,6 +171,7 @@
     updateTelemetry(data);
   }
 
+  /** Formats and displays telemetry JSON report */
   function updateTelemetry(data) {
     const isVision = data.category === 'CANVAS';
     const isAdversarial = data.category === 'ADVERSARIAL' || data.category === 'MUTATION';
