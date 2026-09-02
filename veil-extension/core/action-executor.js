@@ -32,7 +32,7 @@
 
     // --- TYPE ACTION RESOLUTION ---
     if (action.type === 'type') {
-      let textToInject = action.value || '';
+      let textToInject = (action.value != null ? String(action.value) : '').slice(0, 1000);
       let secretMetadata = null;
 
       // Path A: Local Secret Reference Resolution (valueRef)
