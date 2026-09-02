@@ -11,6 +11,7 @@
 
 (function () {
   const MAX_STEPS = 5;
+  const LOOP_TIMEOUT_MS = 30000;
 
   const STATES = {
     IDLE: 'IDLE',
