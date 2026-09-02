@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEIL — Evaluator Proof Mode (Live Test Runner)</title>
+<link rel="stylesheet" href="proof.css">
+</head>
+<body>
+  <div class="proof-container">
+    <header class="proof-header">
+      <div class="header-top">
+        <div class="brand">
+          <span class="dot"></span>
+          <h1>VEIL // PROOF MODE</h1>
+          <span class="badge">ISRO SIH 2026</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <a href="../lab/lab.html" class="run-master-btn" style="background: rgba(188, 140, 255, 0.15); border-color: #bc8cff; color: #bc8cff; text-decoration: none; display: flex; align-items: center;">
+            <span>🔬 Real-World Lab</span>
+          </a>
+          <button id="runAllBtn" class="run-master-btn">
+            <span>▶ RUN COMPLETE TEST SUITE</span>
+          </button>
+        </div>
+      </div>
+      <p class="subtitle">
+        Automated on-device evaluation runner. Executes all 15 benchmark fixtures, 14 semantic resolver tests, and 12 security invariant &amp; vault proofs directly in the browser runtime.
+      </p>
+    </header>
+
+    <!-- Scorecard Matrix -->
+    <section class="scorecard-grid">
+      <div class="score-card">
+        <span class="sc-val" id="scAccuracy">100%</span>
+        <span class="sc-lbl">Visual Context Accuracy</span>
+        <span class="sc-target">Target: &gt; 98% [25% Weight]</span>
+      </div>
+      <div class="score-card">
+        <span class="sc-val highlight-green" id="scRecall">100% / 100%</span>
+        <span class="sc-lbl">PII Precision / Recall</span>
+        <span class="sc-target">Target: &gt; 95% [20% Weight]</span>
+      </div>
+      <div class="score-card">
+        <span class="sc-val highlight-cyan" id="scLeakage">0.00%</span>
+        <span class="sc-lbl">Redaction Leakage Rate</span>
+        <span class="sc-target">Target: = 0.00% [20% Weight]</span>
+      </div>
+      <div class="score-card">
+        <span class="sc-val" id="scRam">&lt; 120 MB</span>
+        <span class="sc-lbl">Client Resource Usage</span>
+        <span class="sc-target">Target: &lt; 300 MB [20% Weight]</span>
+      </div>
+      <div class="score-card">
+        <span class="sc-val" id="scLatency">&lt; 50 ms</span>
+        <span class="sc-lbl">Local Scan Latency</span>
+        <span class="sc-target">Target: &lt; 300 ms [15% Weight]</span>
+      </div>
+    </section>
+
+    <!-- Live Execution Logs -->
+    <main class="test-runner-main">
+      <div class="test-group">
+        <div class="group-header">
+          <h2>1. PII Precision &amp; Recall Benchmark (15 Fixtures)</h2>
+          <span class="group-badge" id="badgePii">READY</span>
+        </div>
+        <div class="test-table-container">
+          <table class="test-table" id="piiTable">
+            <thead>
+              <tr>
+                <th>Fixture</th>
+                <th>Aadhaar</th>
+                <th>PAN</th>
+                <th>Credit Card</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Password</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="piiTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="test-group">
+        <div class="group-header">
+          <h2>2. Semantic Action Resolution &amp; Safety Bounds (14 Assertions)</h2>
+          <span class="group-badge" id="badgeResolver">READY</span>
+        </div>
+        <div class="assertions-grid" id="resolverList">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <div class="test-group">
+        <div class="group-header">
+          <h2>3. Security Invariants, Vault &amp; Threat Defense (12 Assertions)</h2>
+          <span class="group-badge" id="badgeSecurity">READY</span>
+        </div>
+        <div class="assertions-grid" id="securityList">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../core/dom-utils.js"></script>
+  <script src="../core/detector.js"></script>
+  <script src="../core/secret-vault.js"></script>
+  <script src="../core/context-builder.js"></script>
+  <script src="../core/privacy-audit.js"></script>
+  <script src="../core/risk-classifier.js"></script>
+  <script src="../core/action-resolver.js"></script>
+  <script src="../core/action-executor.js"></script>
+  <script src="../core/agent-orchestrator.js"></script>
+  <script src="proof.js"></script>
+</body>
+</html>
