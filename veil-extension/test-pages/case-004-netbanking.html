@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Level B — Netbanking Dashboard &amp; Transfer (Case #004)</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0e14; color: #f0f6fc; padding: 28px; }
+  .bank-card { max-width: 650px; margin: 0 auto; background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; }
+  .balance-card { background: #0d1117; border: 1px solid #238636; border-radius: 8px; padding: 16px; margin: 16px 0; display: flex; justify-content: space-between; align-items: center; }
+  .balance-amt { font-size: 20px; font-weight: 800; color: #38d39f; }
+  .form-group { margin-bottom: 12px; }
+  label { display: block; font-size: 11px; font-weight: 700; color: #8b949e; margin-bottom: 4px; text-transform: uppercase; }
+  input { width: 100%; box-sizing: border-box; background: #090c10; border: 1px solid #30363d; border-radius: 6px; padding: 8px 10px; color: #f0f6fc; font-size: 13px; }
+  .btn-transfer { background: #1f6feb; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 10px; }
+</style>
+</head>
+<body>
+  <div class="bank-card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2>Federal Reserve Bank Dashboard</h2>
+      <span style="font-size: 10px; background: rgba(56,211,159,0.15); color: #38d39f; padding: 3px 6px; border-radius: 4px; font-weight: 700;">CASE #004: FINANCE</span>
+    </div>
+
+    <div class="balance-card">
+      <div>
+        <div style="font-size: 12px; color: #8b949e;">Account Number: 981100223344</div>
+        <div style="font-size: 12px; color: #8b949e;">Linked Mobile: +91 98765-43210</div>
+      </div>
+      <div class="balance-amt">₹1,45,200.50</div>
+    </div>
+
+    <form onsubmit="event.preventDefault(); alert('Transfer Initiated!');">
+      <div class="form-group">
+        <label for="beneficiaryName">Beneficiary Full Name</label>
+        <input type="text" id="beneficiaryName" name="beneficiaryName" value="Kavita Rao">
+      </div>
+      <div class="form-group">
+        <label for="ifscCode">IFSC Code</label>
+        <input type="text" id="ifscCode" name="ifsc" value="SBIN0004123">
+      </div>
+      <div class="form-group">
+        <label for="transferAmount">Transfer Amount (INR)</label>
+        <input type="number" id="transferAmount" name="amount" value="25000">
+      </div>
+      <button type="submit" class="btn-transfer" id="executeTransferBtn">Execute Wire Transfer ₹25,000</button>
+    </form>
+  </div>
+</body>
+</html>

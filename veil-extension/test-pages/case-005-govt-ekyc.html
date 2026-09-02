@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Level B — Government e-KYC Verification (Case #005)</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0e14; color: #f0f6fc; padding: 28px; }
+  .ekyc-card { max-width: 600px; margin: 0 auto; background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; }
+  .form-group { margin-bottom: 14px; }
+  label { display: block; font-size: 11px; font-weight: 700; color: #8b949e; margin-bottom: 4px; text-transform: uppercase; }
+  input { width: 100%; box-sizing: border-box; background: #090c10; border: 1px solid #30363d; border-radius: 6px; padding: 9px 12px; color: #f0f6fc; font-size: 13px; }
+  .btn-verify { background: #d29922; color: #0d1117; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 800; cursor: pointer; width: 100%; margin-top: 10px; }
+</style>
+</head>
+<body>
+  <div class="ekyc-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h2>National Identity e-KYC Gateway</h2>
+      <span style="font-size: 10px; background: rgba(210,153,34,0.15); color: #d29922; padding: 3px 6px; border-radius: 4px; font-weight: 700;">CASE #005: IDENTITY</span>
+    </div>
+    <form onsubmit="event.preventDefault(); alert('Identity verified with local encryption.');">
+      <div class="form-group">
+        <label for="citizenName">Full Name on Record</label>
+        <input type="text" id="citizenName" name="name" value="Ananya Sharma" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label for="aadhaarInput">Aadhaar Number (12 Digits)</label>
+        <input type="text" id="aadhaarInput" name="aadhaar" value="9876 5432 1098">
+      </div>
+      <div class="form-group">
+        <label for="panInput">Permanent Account Number (PAN)</label>
+        <input type="text" id="panInput" name="pan" value="ABCDE1234F">
+      </div>
+      <button type="submit" class="btn-verify" id="verifyIdentityBtn">Authenticate e-KYC Profile</button>
+    </form>
+  </div>
+</body>
+</html>

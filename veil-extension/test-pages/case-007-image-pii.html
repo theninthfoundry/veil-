@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Level C — Visual Raster Image PII (Case #007)</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0e14; color: #f0f6fc; padding: 28px; text-align: center; }
+  .box { max-width: 600px; margin: 0 auto; background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; text-align: left; }
+  .badge { background: rgba(240, 136, 62, 0.15); color: #f0883e; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+  .image-wrapper { background: #fff; color: #111; padding: 24px; border-radius: 8px; margin: 16px 0; border: 2px dashed #f0883e; }
+  .btn-upload { background: #238636; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+</style>
+</head>
+<body>
+  <div class="box">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <h2>Scanned Invoice Receipt</h2>
+      <span class="badge">CASE #007: VISION PII</span>
+    </div>
+    <p style="color: #8b949e; font-size: 13px;">
+      <b>Evaluation Condition</b>: This document is a flattened raster image/scan. The customer name and credit card exist exclusively in image pixels — 0 DOM text nodes exist for regex scanners.
+    </p>
+
+    <div class="image-wrapper" id="rasterReceiptContainer">
+      <svg width="100%" height="160" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="#ffffff"/>
+        <text x="20" y="30" font-family="monospace" font-size="16" font-weight="bold" fill="#000000">TAX INVOICE — APEX ELECTRONICS</text>
+        <text x="20" y="60" font-family="monospace" font-size="14" fill="#333333">Billed To: Johnathan Vance</text>
+        <text x="20" y="85" font-family="monospace" font-size="14" fill="#333333">Card Used: 4111-1111-1111-1111</text>
+        <text x="20" y="110" font-family="monospace" font-size="14" fill="#333333">Amount: ₹14,999.00 PAID</text>
+        <text x="20" y="135" font-family="monospace" font-size="12" fill="#777777">Auth Code: APX-994120</text>
+      </svg>
+    </div>
+
+    <button class="btn-upload" id="submitReceiptBtn">Process Receipt Verification</button>
+  </div>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Level B — Healthcare &amp; Patient Records (Case #006)</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0e14; color: #f0f6fc; padding: 28px; }
+  .med-card { max-width: 600px; margin: 0 auto; background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; }
+  .form-group { margin-bottom: 12px; }
+  label { display: block; font-size: 11px; font-weight: 700; color: #8b949e; margin-bottom: 4px; text-transform: uppercase; }
+  input, textarea { width: 100%; box-sizing: border-box; background: #090c10; border: 1px solid #30363d; border-radius: 6px; padding: 8px 10px; color: #f0f6fc; font-size: 13px; }
+  .btn-submit { background: #8957e5; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 10px; }
+</style>
+</head>
+<body>
+  <div class="med-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h2>Apollo Super Specialty Clinic</h2>
+      <span style="font-size: 10px; background: rgba(137,87,229,0.15); color: #8957e5; padding: 3px 6px; border-radius: 4px; font-weight: 700;">CASE #006: HEALTHCARE</span>
+    </div>
+    <form onsubmit="event.preventDefault(); alert('Patient admission record processed.');">
+      <div class="form-group">
+        <label for="patientName">Patient Full Name</label>
+        <input type="text" id="patientName" name="patient" value="Rohan Gupta" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label for="emergencyContact">Emergency Contact Mobile</label>
+        <input type="tel" id="emergencyContact" name="emergencyPhone" value="+91 91234-56789">
+      </div>
+      <div class="form-group">
+        <label for="diagnosisNotes">Clinical Diagnosis &amp; Medication History</label>
+        <textarea id="diagnosisNotes" rows="2">Patient history of Type-2 Diabetes. Prescribed Metformin 500mg daily.</textarea>
+      </div>
+      <button type="submit" class="btn-submit" id="admitPatientBtn">Register Patient Admission</button>
+    </form>
+  </div>
+</body>
+</html>

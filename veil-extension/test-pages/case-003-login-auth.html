@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Level B — Login &amp; Password Authentication (Case #003)</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0e14; color: #f0f6fc; display: flex; justify-content: center; align-items: center; min-height: 90vh; }
+  .login-card { width: 380px; background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 28px; }
+  .login-card h2 { font-size: 20px; margin-bottom: 8px; color: #58a6ff; }
+  .form-group { margin-bottom: 16px; }
+  label { display: block; font-size: 11px; font-weight: 700; color: #8b949e; margin-bottom: 6px; text-transform: uppercase; }
+  input { width: 100%; box-sizing: border-box; background: #090c10; border: 1px solid #30363d; border-radius: 6px; padding: 10px; color: #f0f6fc; font-size: 13px; }
+  .btn-submit { width: 100%; background: #238636; color: #fff; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+</style>
+</head>
+<body>
+  <div class="login-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <h2>Secure Workspace</h2>
+      <span style="font-size: 10px; background: rgba(88,166,255,0.15); color: #58a6ff; padding: 3px 6px; border-radius: 4px; font-weight: 700;">CASE #003</span>
+    </div>
+    <form onsubmit="event.preventDefault(); alert('Logged in securely with VEIL local credentials.');">
+      <div class="form-group">
+        <label for="userEmail">Account Email</label>
+        <input type="email" id="userEmail" name="email" value="alex.vance@defense-research.org" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label for="userPass">Master Password</label>
+        <input type="password" id="userPass" name="password" value="SuperSecretP@ss99!" autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-submit" id="loginBtn">Authenticate Session</button>
+    </form>
+  </div>
+</body>
+</html>
