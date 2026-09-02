@@ -13,7 +13,8 @@
  */
 
 (function () {
-  const HIGH_RISK_KEYWORDS = [
+  const RISK_VERSION = '1.2.0';
+const HIGH_RISK_KEYWORDS = [
     'pay', 'buy', 'purchase', 'order', 'checkout', 'transfer', 'delete',
     'remove', 'terminate', 'cancel subscription', 'change password', 'wipe'
   ];
