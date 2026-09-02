@@ -7,6 +7,7 @@
 (function () {
   /** Human-readable label for an interactive element: what a person would call it. */
   function labelFor(el) {
+    if (!el || typeof el !== 'object') return '';
     const aria = el.getAttribute && el.getAttribute('aria-label');
     if (aria && aria.trim()) return aria.trim();
 
