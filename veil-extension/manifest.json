@@ -1,21 +1,50 @@
 {
   "manifest_version": 3,
   "name": "VEIL — privacy firewall for browser agents",
-  "version": "0.1.0",
-  "description": "Detects and redacts PII locally, before any page context would be sent to a server agent. Phase 1: DOM/regex detection and on-page redaction.",
-  "permissions": ["activeTab", "tabs"],
+  "version": "0.2.0",
+  "description": "See locally. Reason remotely. Reveal nothing sensitive. On-device visual perception & privacy firewall for browser agents.",
+  "permissions": ["activeTab", "tabs", "storage"],
+  "host_permissions": [
+    "http://127.0.0.1:8000/*",
+    "http://localhost:8000/*",
+    "https://huggingface.co/*",
+    "https://cdn.jsdelivr.net/*"
+  ],
   "background": {
     "service_worker": "background/background.js"
   },
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "VEIL — privacy observatory"
+    "default_title": "VEIL — Privacy Observatory"
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["core/detector.js", "content/redactor.js", "content/content.js"],
+      "matches": ["http://*/*", "https://*/*", "file:///*"],
+      "js": [
+        "core/dom-utils.js",
+        "core/detector.js",
+        "core/secret-vault.js",
+        "core/failure-analyzer.js",
+        "core/context-builder.js",
+        "core/privacy-audit.js",
+        "core/risk-classifier.js",
+        "core/security-ledger.js",
+        "core/action-resolver.js",
+        "core/action-executor.js",
+        "core/agent-orchestrator.js",
+        "core/comparison-builder.js",
+        "content/redactor.js",
+        "content/vision-fallback.js",
+        "content/inspector-overlay.js",
+        "content/content.js"
+      ],
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["vendor/transformers.web.min.js"],
+      "matches": ["http://*/*", "https://*/*", "file:///*"]
     }
   ],
   "icons": {
