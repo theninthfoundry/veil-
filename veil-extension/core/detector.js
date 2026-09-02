@@ -267,7 +267,12 @@
    * @param {Document|Element} root
    * @returns {Array<{type: string, method: string, confidence: number, element: Element|null}>}
    */
-  function scanForPII(root) {
+  /**
+ * Comprehensive PII scan across DOM attributes and visible text.
+ * @param {Document|Element} root - Target DOM node or document
+ * @returns {Array<{type: string, method: string, confidence: number, element: Element|null}>}
+ */
+function scanForPII(root) {
     return [...scanFormFields(root), ...scanVisibleText(root)];
   }
 
