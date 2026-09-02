@@ -19,7 +19,7 @@
       label: 'Demo Visa Card',
       type: 'credit_card',
       maskedDisplay: '•••• •••• •••• 1111',
-      allowedOrigins: ['localhost', '127.0.0.1', '*'],
+      allowedOrigins: ['localhost', '127.0.0.1'],
       allowedFields: ['card', 'card_number', 'cc-number', 'credit_card'],
       value: '4111 1111 1111 1111'
     },
@@ -28,7 +28,7 @@
       label: 'Demo CVV Code',
       type: 'cvv',
       maskedDisplay: '•••',
-      allowedOrigins: ['localhost', '127.0.0.1', '*'],
+      allowedOrigins: ['localhost', '127.0.0.1'],
       allowedFields: ['cvv', 'cvc', 'cc-csc', 'security_code'],
       value: '421'
     },
@@ -37,7 +37,7 @@
       label: 'Primary Shipping Address',
       type: 'address',
       maskedDisplay: 'Flat 402, Cyber Heights, Hyderabad...',
-      allowedOrigins: ['localhost', '127.0.0.1', '*'],
+      allowedOrigins: ['localhost', '127.0.0.1'],
       allowedFields: ['address', 'street-address', 'shipping_address', 'street'],
       value: 'Flat 402, Cyber Heights, Hitec City, Hyderabad, 500081'
     },
@@ -46,7 +46,7 @@
       label: 'Primary Contact Phone',
       type: 'phone',
       maskedDisplay: '+91 98765-•••••',
-      allowedOrigins: ['localhost', '127.0.0.1', '*'],
+      allowedOrigins: ['localhost', '127.0.0.1'],
       allowedFields: ['phone', 'tel', 'mobile', 'notes', 'contact'],
       value: '+91 98765-43210'
     },
@@ -55,7 +55,7 @@
       label: 'Primary User Name',
       type: 'name',
       maskedDisplay: 'Sreeshanth R••••',
-      allowedOrigins: ['localhost', '127.0.0.1', '*'],
+      allowedOrigins: ['localhost', '127.0.0.1'],
       allowedFields: ['name', 'fullname', 'patient_name', 'account_holder'],
       value: 'Sreeshanth Reddy'
     },
@@ -64,7 +64,7 @@
       label: 'Primary Email Address',
       type: 'email',
       maskedDisplay: 'sreeshanth@••••••••••',
-      allowedOrigins: ['localhost', '127.0.0.1', '*'],
+      allowedOrigins: ['localhost', '127.0.0.1'],
       allowedFields: ['email', 'email_address', 'username'],
       value: 'sreeshanth@example.com'
     }
@@ -106,9 +106,19 @@
       return { ok: false, reason: `unknown-secret-reference: ${secretId}`, secretId };
     }
 
-    // 1. Origin Scope Check
-    const origin = (currentOrigin || '').toLowerCase().replace(/:\d+$/, '');
-    const originAllowed = entry.allowedOrigins.some(o => o === '*' || origin.includes(o.toLowerCase()));
+    // 1. Origin Scope Check: strict hostname matching
+    const origin = (currentOrigin || '')
+      .toLowerCase()
+      .replace(/^(https?:\/\/)/, '')
+      .replace(/:\d+$/, '')
+      .replace(/\/.*$/, '')
+      .trim();
+
+    const originAllowed = entry.allowedOrigins.some(o => {
+      const allowed = o.toLowerCase().trim();
+      return origin === allowed || origin.endsWith('.' + allowed);
+    });
+
     if (!originAllowed) {
       return {
         ok: false,
