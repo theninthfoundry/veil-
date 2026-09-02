@@ -97,7 +97,7 @@
    * @returns {{ok: boolean, value?: string, reason?: string, secretId: string, label?: string}}
    */
   function resolveSecret(secretId, currentOrigin, fieldIdentifier) {
-    if (!secretId || typeof secretId !== 'string' || !/^LOCAL_SECRET_\d+$/i.test(secretId.trim())) {
+    if (!secretId || typeof secretId !== 'string' || !/^LOCAL_SECRET_[A-Z0-9_]+$/i.test(secretId.trim())) {
       return { ok: false, reason: 'invalid-secret-id-format', secretId: String(secretId) };
     }
 
