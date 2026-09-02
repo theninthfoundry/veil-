@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEIL Demo Store — Secure Checkout</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --card-bg: #161b22;
+    --border: #30363d;
+    --text-primary: #f0f6fc;
+    --text-secondary: #8b949e;
+    --accent: #58a6ff;
+    --accent-glow: rgba(88, 166, 255, 0.15);
+    --success: #3fb950;
+    --danger: #f85149;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+  }
+  .container {
+    width: 100%;
+    max-width: 860px;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 28px;
+  }
+  @media (max-width: 768px) {
+    .container { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+  h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  /* Product card */
+  .product-preview {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .product-thumb {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    background: #21262d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    border: 1px solid var(--border);
+  }
+  .product-info h3 { font-size: 16px; margin-bottom: 4px; }
+  .product-info p { font-size: 13px; color: var(--text-secondary); }
+  .product-price { font-size: 18px; font-weight: 700; color: var(--accent); margin-top: 6px; }
+
+  .order-summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: var(--text-secondary);
+  }
+  .order-summary-row.total {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-top: 1px dashed var(--border);
+    padding-top: 12px;
+    margin-top: 12px;
+  }
+
+  /* Form */
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin: 14px 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  input, textarea {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #0d1117;
+    color: var(--text-primary);
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .form-row {
+    display: flex;
+    gap: 12px;
+  }
+  .form-row > div { flex: 1; }
+  
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: rgba(63, 185, 80, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(63, 185, 80, 0.3);
+  }
+  
+  button#submitBtn {
+    margin-top: 24px;
+    width: 100%;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    background: var(--accent);
+    color: #0d1117;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  button#submitBtn:hover { opacity: 0.95; transform: translateY(-1px); }
+  button#submitBtn:active { transform: translateY(0); }
+
+  .veil-status-banner {
+    margin-top: 20px;
+    padding: 14px;
+    background: rgba(88, 166, 255, 0.08);
+    border: 1px solid rgba(88, 166, 255, 0.2);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 10px;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <!-- Left Column: Order Summary -->
+    <div class="card">
+      <h1>🛍️ VEIL Demo Store</h1>
+      <h2>Order Summary</h2>
+      
+      <div class="product-preview">
+        <div class="product-thumb">🎧</div>
+        <div class="product-info">
+          <h3>Quantum ANC Wireless Headphones</h3>
+          <p>Color: Matte Midnight Black</p>
+          <p class="product-price">₹4,999.00</p>
+        </div>
+      </div>
+
+      <div class="order-summary-row">
+        <span>Subtotal</span>
+        <span>₹4,999.00</span>
+      </div>
+      <div class="order-summary-row">
+        <span>Express Delivery</span>
+        <span style="color: var(--success);">FREE</span>
+      </div>
+      <div class="order-summary-row">
+        <span>GST (18%)</span>
+        <span>Included</span>
+      </div>
+      <div class="order-summary-row total">
+        <span>Total Amount</span>
+        <span style="color: var(--accent);">₹4,999.00</span>
+      </div>
+
+      <div class="veil-status-banner">
+        <span style="font-size: 18px;">🛡️</span>
+        <div>
+          <strong style="color: var(--text-primary);">VEIL Privacy Firewall Active</strong><br>
+          Any AI agent operating this checkout page will see structural tags only. Your name, email, card, and address never leave your machine.
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Checkout Form -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="margin: 0;">Payment Details</h2>
+        <span class="badge">SECURED BY VEIL</span>
+      </div>
+
+      <form id="checkoutForm" onsubmit="event.preventDefault(); alert('Order placed securely! VEIL prevented all PII leakage.');">
+        <label for="fullname">Full Name</label>
+        <input id="fullname" name="fullname" autocomplete="name" type="text" value="Sreeshanth Reddy">
+
+        <label for="email">Email Address</label>
+        <input id="email" name="email" type="email" value="sreeshanth@example.com">
+
+        <div class="form-row">
+          <div style="flex: 2;">
+            <label for="card">Card Number</label>
+            <input id="card" name="card_number" autocomplete="cc-number" type="text" value="4111 1111 1111 1111">
+          </div>
+          <div style="flex: 1;">
+            <label for="cvv">CVV</label>
+            <input id="cvv" name="cvv" autocomplete="cc-csc" type="text" value="421">
+          </div>
+        </div>
+
+        <label for="address">Shipping Address</label>
+        <input id="address" name="address" autocomplete="street-address" type="text" value="Flat 402, Cyber Heights, Hitec City, Hyderabad, 500081">
+
+        <label for="notes">Delivery Contact & Instructions</label>
+        <textarea id="notes" name="notes" rows="2">Call +91 98765-43210 upon arrival at gate 3.</textarea>
+
+        <button id="submitBtn" type="submit">Complete Purchase ₹4,999</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
