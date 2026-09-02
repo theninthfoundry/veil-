@@ -70,24 +70,32 @@
   }
 
   /**
-   * @param {Array<{type: string, element: Element|null}>} detections
-   * @returns {number} how many bars were actually drawn (elements with a
-   *   visible, positioned rect — hidden fields don't get a bar since there's
-   *   nothing on screen to cover, but they still count in the stats)
+   * @param {Array<{type: string, element: Element|null, box?: {left:number,top:number,width:number,height:number}}>} detections
+   * @returns {number} how many bars were actually drawn
    */
   function renderRedactions(detections) {
     const layer = ensureLayer();
     layer.innerHTML = '';
 
     let drawn = 0;
-    const seen = new Set(); // one bar per element, even if it matched twice
+    const seen = new Set(); // one bar per element for whole-element detections only
 
     for (const d of detections) {
-      if (!d.element || seen.has(d.element)) continue;
-      seen.add(d.element);
+      let rect;
 
-      const rect = d.element.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) continue;
+      if (d.box) {
+        // A sub-region of an element (e.g. one face inside an <img> that
+        // might contain several) — always draw, never deduped by element,
+        // since one element can legitimately need more than one bar here.
+        if (d.box.width <= 0 || d.box.height <= 0) continue;
+        rect = d.box;
+      } else {
+        if (!d.element || seen.has(d.element)) continue;
+        seen.add(d.element);
+        const r = d.element.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) continue;
+        rect = { left: r.left, top: r.top, width: r.width, height: r.height };
+      }
 
       const bar = document.createElement('div');
       bar.className = 'veil-bar';
@@ -97,7 +105,9 @@
       bar.style.height = `${rect.height}px`;
       bar.dataset.veilType = d.type;
       bar.setAttribute('aria-hidden', 'true');
-      bar.dataset.veilReveal = `${d.type} — local only, never sent: ${elementValue(d.element)}`;
+      bar.dataset.veilReveal = d.box
+        ? `${d.type} — local only, never sent`
+        : `${d.type} — local only, never sent: ${elementValue(d.element)}`;
 
       layer.appendChild(bar);
       drawn += 1;
@@ -111,8 +121,8 @@
     if (layer) layer.innerHTML = '';
   }
 
-  const api = { renderRedactions, clearRedactions };
+  const redactorExport = { renderRedactions, clearRedactions };
   if (typeof window !== 'undefined') {
-    window.VeilRedactor = api;
+    window.VeilRedactor = redactorExport;
   }
 })();
