@@ -652,10 +652,14 @@ OVERALL ISRO RUBRIC SCORE: 98.2 / 100
 └──────────────────────────────┴─────────────────────────────────────────────────────────────┘
 ```
 
+### 🏥 Automated Healthcheck
+You can verify gateway connectivity at any time:
+```powershell
+.\scripts\healthcheck.ps1
+```
+
 ---
 
 <div align="center">
   <sub>Built with ❤️ for ISRO SIH 2026. Designed for uncompromising privacy and real-world performance.</sub>
 </div>
-
-<!-- Setup Guide: Verified on Chrome 120+ and Node 18+ -->
