@@ -34,7 +34,13 @@ const HIGH_RISK_KEYWORDS = [
    *   reason: string
    * }}
    */
-  function classifyActionRisk(action, targetElement, sensitiveElements) {
+  /**
+ * Classifies action risk into SAFE, SENSITIVE, HIGH_RISK, or BLOCKED.
+ * @param {Object} action - Proposed VLM action
+ * @param {Element|null} targetElement - Resolved DOM target
+ * @param {Set<Element>} sensitiveElements - Sensitive elements
+ */
+function classifyActionRisk(action, targetElement, sensitiveElements) {
     if (!action || action.type === 'wait' || action.type === 'none' || action.type === 'scroll') {
       return { level: 'SAFE', allowed: true, requiresConfirmation: false, reason: 'Safe viewport/no-op action' };
     }
