@@ -42,6 +42,7 @@
     return event;
   }
 
+  /** Returns copy of active security event ledger */
   function getLedger() {
     return [...ledger];
   }
