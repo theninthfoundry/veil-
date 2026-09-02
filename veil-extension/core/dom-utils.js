@@ -45,7 +45,13 @@
   }
 
   /** Jaccard word overlap between two strings, 0..1. */
-  function wordOverlapScore(a, b) {
+  /**
+ * Calculates Jaccard word overlap coefficient (0..1).
+ * @param {string} a - First text string
+ * @param {string} b - Second text string
+ * @returns {number} Overlap coefficient
+ */
+function wordOverlapScore(a, b) {
     const wa = new Set(normalize(a).split(' ').filter(Boolean));
     const wb = new Set(normalize(b).split(' ').filter(Boolean));
     if (wa.size === 0 || wb.size === 0) return 0;
