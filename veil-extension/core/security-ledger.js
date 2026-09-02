@@ -21,7 +21,8 @@
     const event = {
       id: `evt-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       timestamp: Date.now(),
-      isoTime: new Date().toISOString().substring(11, 19),
+      isoTime: new Date().toLocaleTimeString('en-US', { hour12: false }),
+      epochMs: Date.now(),
       type,
       stage,
       detail,
