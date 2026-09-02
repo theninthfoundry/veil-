@@ -19,7 +19,7 @@ Rather than granting an AI agent monolithic control over the browser, VEIL separ
        │                          │                          │
   - DOM TreeWalker           - PII Regex Scanner        - Semantic Target Resolver
   - Input Type Parser        - Luhn CC Checksum         - Action Risk Classifier
-  - Accessibility Labels     - Visual Face Masking      - Hard Sensitive Type-Block
+  - Accessibility Labels     - Visual Face Masking      - Local Secret Vault (ValueRef)
   - Local Vision (OWL-ViT)   - Privacy Audit Firewall   - DOM Mutation Validator
        │                          │                          │
        └──────────────────────────┼──────────────────────────┘
@@ -32,7 +32,15 @@ Rather than granting an AI agent monolithic control over the browser, VEIL separ
                                   │
                                   ▼
                         REMOTE REASONING VLM
-                        (Proposes semantic intent)
+                        (Proposes: TYPE LOCAL_SECRET_01)
+                                  │
+                     ═════════════╪═════════════
+                       INBOUND ACTION GATE
+                     ═════════════╪═════════════
+                                  │
+                                  ▼
+                     LOCAL SECRET VAULT RESOLUTION
+                     (Injects: 4111-1111-1111-1111 locally)
 ```
 
 ---
