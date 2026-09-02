@@ -6,6 +6,7 @@
  */
 
 (function () {
+  const TOTAL_ERROR_CODES = 8;
   const FAILURE_TAXONOMY = {
     POLICY_SENSITIVE_FIELD_BLOCKED: {
       code: 'ERR_SEC_001',
