@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-09-02T07:26:44.961Z",
+  "totalCases": 10,
+  "modesEvaluated": [
+    "OBSERVE",
+    "SIMULATE",
+    "LIVE_AGENT"
+  ],
+  "status": "PASSED",
+  "metrics": {
+    "piiPrecision": "100.0%",
+    "piiRecall": "100.0%",
+    "outboundLeakageRate": "0.00%",
+    "attacksBlocked": "7 / 7 (100%)",
+    "evaluationDurationMs": 509
+  }
+}

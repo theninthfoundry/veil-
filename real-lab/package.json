@@ -1,0 +1,12 @@
+{
+  "name": "veil-real-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Automated End-to-End Real Web Evaluation Framework for VEIL",
+  "scripts": {
+    "test:observe": "node runner/observe.js",
+    "test:simulate": "node runner/simulate.js",
+    "test:live-agent": "node runner/live-agent.js",
+    "test:all": "node run-all.js"
+  }
+}
