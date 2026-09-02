@@ -56,6 +56,7 @@
     while (currentStep < MAX_STEPS) {
       currentStep++;
       const stepT0 = performance.now();
+      const stepIso = new Date().toISOString();
 
       // --- STEP 1: PERCEPTION ---
       state = STATES.PERCEIVING;
