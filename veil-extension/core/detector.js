@@ -129,7 +129,7 @@
         const matchText = m[1] || m[0];
         const matchStart = m[1] ? m.index + m[0].indexOf(m[1]) : m.index;
         const digits = matchText.replace(/\D/g, '');
-        if (digits.length >= 10 && digits.length <= 15 && !isPrecededByNonPhonePrefix(text, m.index)) {
+        if (digits.length >= 10 && digits.length <= 15 && !digits.startsWith('0000') && !isPrecededByNonPhonePrefix(text, m.index)) {
           candidates.push({
             type: 'phone',
             confidence: Math.min(baseConfidence, 0.7),
