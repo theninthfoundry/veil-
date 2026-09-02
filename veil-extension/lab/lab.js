@@ -145,6 +145,7 @@
   };
 
   function selectCase(caseKey) {
+    // Populates dual perception viewports dynamically
     const data = REAL_WORLD_CASES[caseKey];
     if (!data) return;
 
