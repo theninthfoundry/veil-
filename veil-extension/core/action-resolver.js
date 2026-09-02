@@ -22,6 +22,7 @@
    * @returns {Element|null}
    */
   function resolveTarget(target, document) {
+    if (!document || !document.querySelector) return null;
     if (!target) return null;
 
     if (target.id && VEIL_ID_RE.test(target.id)) {
