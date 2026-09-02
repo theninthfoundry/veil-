@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Appointment Booking — Apollo Hospitals</title></head>
+<body>
+  <header>
+    <h1>Book an Appointment</h1>
+    <p>Apollo Hospitals, Greams Road, Chennai</p>
+  </header>
+
+  <!-- A form with labeled fields (easy) plus visible-text PII (hard),
+       plus an img element (to exercise the vision fallback path). -->
+
+  <form id="booking-form" action="/book" method="post">
+    <label for="patient_name">Patient Name</label>
+    <input type="text" id="patient_name" name="patient_name" autocomplete="name" value="Deepa Venkataraman">
+
+    <label for="patient_email">Email</label>
+    <input type="email" id="patient_email" name="patient_email" autocomplete="email" value="deepa.v@gmail.com">
+
+    <label for="patient_phone">Mobile</label>
+    <input type="tel" id="patient_phone" name="patient_phone" autocomplete="tel" value="+91 94440-12345">
+
+    <label for="patient_address">Address</label>
+    <textarea id="patient_address" name="patient_address" autocomplete="street-address">12, Besant Nagar 2nd Cross, Chennai 600090</textarea>
+
+    <label for="notes">Reason for Visit</label>
+    <textarea id="notes" name="notes">Follow-up for Dr. Ramesh's prescription from last month</textarea>
+    <!-- Notes field mentions a name in prose — should NOT be flagged as a name PII -->
+
+    <button type="submit">Confirm Booking</button>
+  </form>
+
+  <section id="doctor-profile">
+    <h2>Your Doctor</h2>
+    <img src="doctor-profile.jpg" alt="Dr. Ramesh Krishnamurthy" width="200" height="200">
+    <p>Dr. Ramesh Krishnamurthy, MBBS, MD (Cardiology)</p>
+    <p>Registration: TN-MC-12345</p>
+    <!-- The img is here to exercise the vision fallback detector. In the
+         benchmark harness (jsdom, no images), this is a no-op — it only
+         matters in the live browser. -->
+  </section>
+
+  <footer>
+    <p>Emergency: 1066 | Email: info@apollohospitals.com</p>
+  </footer>
+</body>
+</html>
