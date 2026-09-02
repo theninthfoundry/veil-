@@ -111,13 +111,14 @@
     if (mediaEls.length === 0) return;
 
     const tVisionStart = performance.now();
-    window.VeilVisionFallback.detectFaces(mediaEls)
-      .then((faceDetections) => {
+    const scanFn = window.VeilVisionFallback.scanVisualPII || window.VeilVisionFallback.detectFaces;
+    scanFn(mediaEls)
+      .then((visualDetections) => {
         lastTelemetry.visionMs = Math.round(performance.now() - tVisionStart);
-        if (!enabled || faceDetections.length === 0) return;
-        lastDetections = [...lastDetections, ...faceDetections];
+        if (!enabled || !visualDetections || visualDetections.length === 0) return;
+        lastDetections = [...lastDetections, ...visualDetections];
         renderRedactions(lastDetections);
-        recordEvent('VISION_PII_DETECTED', 'vision', { faceCount: faceDetections.length });
+        recordEvent('VISION_PII_DETECTED', 'vision', { count: visualDetections.length });
         sendStats(lastTelemetry.domMs, undefined);
 
         if (window.VeilInspector) {
@@ -127,7 +128,7 @@
       })
       .catch((err) => {
         lastTelemetry.visionMs = Math.round(performance.now() - tVisionStart);
-        console.warn('[VEIL] vision fallback unavailable, continuing without it:', err);
+        console.warn('[VEIL] visual perception unavailable, continuing without it:', err);
       });
   }
 
@@ -168,6 +169,9 @@
       window.VeilInspector.logTimeline(`Goal: "${task}"`, true);
     }
 
+    const confirmationFn = (details) => (window.VeilHighRiskConfirmation ? window.VeilHighRiskConfirmation.requestConfirmation(details) : Promise.resolve(true));
+    const verifyIntegrityFn = (act, el, doc) => (window.VeilMutationGuard ? window.VeilMutationGuard.verifyActionIntegrity(act, el, doc) : { valid: true });
+
     runAutonomousLoop(task, {
       scanAndRedactFn: () => scanAndRedact(),
       buildContextFn: (doc, dets) => buildSanitizedContext(doc, dets),
@@ -175,6 +179,8 @@
       callServerFn: (t, ctx) => callServer(t, ctx),
       resolveTargetFn: (target, doc) => resolveTarget(target, doc),
       classifyRiskFn: (act, el, sens) => classifyActionRisk(act, el, sens),
+      confirmationFn,
+      verifyIntegrityFn,
       executeActionFn: (act, el, sens, origin) => executeAction(act, el, sens, origin),
       recordEventFn: (type, stage, detail) => recordEvent(type, stage, detail),
       onStepUpdate: (update) => {
