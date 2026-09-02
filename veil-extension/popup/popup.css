@@ -535,3 +535,6 @@ h1 {
 
 .hero-arrow { font-size: 13px; transition: transform 0.2s; }
 .veil-hero-btn:hover .hero-arrow { transform: translateX(2px); }
+
+/* Accessibility: focus ring indicator */
+button:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 2px; }
