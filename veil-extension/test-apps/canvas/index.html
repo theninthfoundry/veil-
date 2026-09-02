@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Security Badge Portal — HTML5 Canvas PII</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 32px; text-align: center; }
+    .container { max-width: 600px; margin: 0 auto; background: #1e293b; padding: 28px; border-radius: 12px; border: 1px solid #334155; }
+    canvas { background: #0f172a; border: 2px solid #38bdf8; border-radius: 8px; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 style="color: #38bdf8; font-size: 20px;">Digital Identity Badge</h1>
+    <p style="color: #94a3b8; font-size: 13px;">This credential exists exclusively inside the 2D canvas memory buffer.</p>
+
+    <canvas id="badgeCanvas" width="450" height="200"></canvas>
+
+    <p style="color: #64748b; font-size: 12px;">DOM contains zero text nodes. Only Local Pixel OCR can detect and mask this Aadhaar &amp; Email.</p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('badgeCanvas');
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 450, 200);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('ISRO SCIENTIFIC BADGE', 20, 40);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('Name: Dr. Sreeshanth Reddy', 20, 80);
+    ctx.fillText('Email: sreeshanth.rao@isro.res.in', 20, 110);
+    ctx.fillText('UID: 9876 5432 1098', 20, 140);
+    ctx.fillText('Status: AUTHORIZED SCIENTIST', 20, 170);
+  </script>
+</body>
+</html>
