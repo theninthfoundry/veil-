@@ -9,25 +9,40 @@ not just assumed of the client.
 
 Security:
   - ElementIn uses extra="forbid" — if a client ever sends a `value` field,
-    the request is rejected outright.
+    the request is rejected outright (HTTP 422).
   - Prompt injection guard scans DOM labels for adversarial override patterns
     before the VLM processes them.
   - ValueRef: Remote models can request local secret references (e.g. LOCAL_SECRET_01)
     without ever seeing or receiving raw credentials.
+  - Evidence Mode: In VEIL_EVIDENCE_MODE=true, MockVLM is strictly prohibited.
+    If Ollama is unavailable, returns HTTP 503 with REAL_REASONER_UNAVAILABLE.
 """
 
+import os
 import re
+import time
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict
 
-from vlm_client import ACTION_TYPES, get_vlm_client
+from vlm_client import (
+    ACTION_TYPES,
+    MockVLMClient,
+    OllamaVLMClient,
+    RealReasonerUnavailableError,
+    get_vlm_client,
+    is_evidence_mode,
+    probe_ollama_sync,
+)
 
 app = FastAPI(
-    docs_url='/docs',
-    redoc_url=None,title="VEIL server", version="0.2.0")
+    docs_url="/docs",
+    redoc_url=None,
+    title="VEIL server",
+    version="0.2.2",
+)
 
 # CORS for Chrome Extension requests (content script / service worker origin)
 app.add_middleware(
@@ -40,7 +55,7 @@ app.add_middleware(
 
 
 # ---------------------------------------------------------------------------
-# Prompt injection guard (merged from server/app/security/)
+# Prompt injection guard
 # ---------------------------------------------------------------------------
 
 _SUSPECT_MARKERS = re.compile(
@@ -109,20 +124,41 @@ class ActResponse(BaseModel):
 
 @app.get("/health")
 async def health():
-    client = get_vlm_client()
+    evidence_mode = is_evidence_mode()
+    ollama_online, installed_models, detected_model = probe_ollama_sync()
+    ollama_endpoint = os.environ.get("VEIL_OLLAMA_URL", "http://localhost:11434")
+    target_model = os.environ.get("VEIL_OLLAMA_MODEL", detected_model or "qwen2-vl:7b")
+
+    if evidence_mode:
+        reasoner_type = "REAL_OLLAMA" if ollama_online else "REAL_REASONER_UNAVAILABLE"
+        reasoner_name = f"Local Ollama Reasoner ({target_model})" if ollama_online else "Offline"
+    else:
+        reasoner_type = "REAL_OLLAMA" if ollama_online else "DETERMINISTIC_MOCK"
+        reasoner_name = f"Local Ollama Reasoner ({target_model})" if ollama_online else "Deterministic Mock Reasoner"
+
     return {
         "ok": True,
-        "backend": client.backend_name,
+        "evidenceMode": evidence_mode,
+        "ollama": {
+            "available": ollama_online,
+            "endpoint": ollama_endpoint,
+            "model": target_model,
+            "modelAvailable": bool(target_model in installed_models if installed_models else False),
+            "installedModels": installed_models,
+        },
+        "reasoner": {
+            "type": reasoner_type,
+            "name": reasoner_name,
+        },
         "service": "VEIL Reasoning Gateway",
-        "version": "0.2.0",
+        "version": "0.2.2",
     }
 
 
 @app.post("/act", response_model=ActResponse)
 async def act(request: ActRequest):
-    import time
-
     t0 = time.perf_counter()
+    evidence_mode = is_evidence_mode()
 
     # --- Security: prompt injection guard ---
     elements = [el.model_dump() for el in request.page.elements]
@@ -143,12 +179,50 @@ async def act(request: ActRequest):
                 "The server must never receive field values.",
             )
 
-    # --- Reasoning ---
-    client = get_vlm_client()
+    # --- Reasoner Instantiation & Selection ---
+    try:
+        client = get_vlm_client()
+    except RealReasonerUnavailableError as rrue:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "REAL_REASONER_UNAVAILABLE",
+                "reason": rrue.reason,
+                "endpoint": rrue.endpoint,
+                "model": rrue.model,
+                "timestamp": rrue.timestamp,
+                "evidenceMode": True,
+            },
+        )
+
+    active_backend = client.display_name
+
+    # --- Reasoning Execution ---
     try:
         result = await client.decide(request.task, elements)
+    except RealReasonerUnavailableError as rrue:
+        if evidence_mode:
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "error": "REAL_REASONER_UNAVAILABLE",
+                    "reason": rrue.reason,
+                    "endpoint": rrue.endpoint,
+                    "model": rrue.model,
+                    "timestamp": rrue.timestamp,
+                    "evidenceMode": True,
+                },
+            )
+        # In non-evidence development mode, provide fallback with clear telemetry
+        active_backend = "Deterministic Mock Reasoner (Fallback: Ollama Unreachable)"
+        mock_client = MockVLMClient()
+        result = await mock_client.decide(request.task, elements)
     except Exception as exc:
-        raise HTTPException(502, f"VLM backend error: {exc}") from exc
+        if evidence_mode:
+            raise HTTPException(502, f"Real reasoner execution failure: {exc}") from exc
+        active_backend = f"Deterministic Mock Reasoner (Fallback: {exc})"
+        mock_client = MockVLMClient()
+        result = await mock_client.decide(request.task, elements)
 
     if result.get("action") not in ACTION_TYPES:
         raise HTTPException(
@@ -156,15 +230,19 @@ async def act(request: ActRequest):
         )
 
     elapsed_ms = round((time.perf_counter() - t0) * 1000, 2)
+    telemetry_data = {
+        "serverLatencyMs": elapsed_ms,
+        "activeBackend": active_backend,
+        "evidenceMode": evidence_mode,
+        "securityVerification": "PASSED",
+        "injectionLabelsBlocked": 0,
+    }
+    if "_telemetry" in result:
+        telemetry_data.update(result.pop("_telemetry"))
 
     return ActResponse(
         **result,
-        telemetry={
-            "serverLatencyMs": elapsed_ms,
-            "activeBackend": client.backend_name,
-            "securityVerification": "PASSED",
-            "injectionLabelsBlocked": 0,
-        },
+        telemetry=telemetry_data,
     )
 
 
