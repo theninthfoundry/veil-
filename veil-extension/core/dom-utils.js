@@ -49,6 +49,7 @@
     const wa = new Set(normalize(a).split(' ').filter(Boolean));
     const wb = new Set(normalize(b).split(' ').filter(Boolean));
     if (wa.size === 0 || wb.size === 0) return 0;
+    if (wa.size === wb.size && [...wa].every(x => wb.has(x))) return 1.0;
     let intersect = 0;
     for (const w of wa) if (wb.has(w)) intersect += 1;
     const union = new Set([...wa, ...wb]).size;
