@@ -1,57 +1,52 @@
-#!/usr/bin/env node
 /**
- * VEIL — Master Scientific Evaluation & Security Suite
- * Runs all 5 validation and defense layers:
- *   1. PII Precision & Recall Benchmark (15 fixtures)
- *   2. Semantic Action Resolution & Bounds Suite (14 assertions)
- *   3. Security & Privacy Invariant Defense Suite (12 assertions)
- *   4. Adversarial Attack Penetration Suite (7 attack vectors)
- *   5. Empirical Architecture Ablation Study (4 configurations)
+ * VEIL — Master Evaluation & Scientific Benchmark Suite
+ *
+ * Runs all 5 evaluation layers sequentially and prints a unified scorecard.
  */
 
 const { execSync } = require('child_process');
 
 console.log('======================================================================');
-console.log('            VEIL MASTER EVALUATION & SECURITY SUITE                   ');
-console.log('     ISRO SIH: On-Device Visual Perception for Light-weight Agents    ');
+console.log('       VEIL: 5-SUITE EMPIRICAL EVALUATION & INTEGRITY HARNESS         ');
 console.log('======================================================================\n');
 
-let allPassed = true;
+const SUITES = [
+  { name: '1. PII Precision & Recall Benchmark (15 Fixtures)', file: 'benchmark/test-improved-detector.js' },
+  { name: '2. Semantic Action Resolution & Safety Suite', file: 'benchmark/run-resolver-test.js' },
+  { name: '3. Security Invariants & Vault Defense Suite', file: 'benchmark/run-security-test.js' },
+  { name: '4. Adversarial Attack Penetration Suite', file: 'benchmark/run-adversarial-attacks.js' },
+  { name: '5. Empirical Architecture Ablation Study', file: 'benchmark/run-ablation-study.js' }
+];
 
-function runSuite(title, command) {
-  console.log(`▶ Running [${title}]...`);
+let allPassed = true;
+const t0 = Date.now();
+
+for (const suite of SUITES) {
+  console.log(`▶ Running [${suite.name}]...`);
   console.log('----------------------------------------------------------------------');
   try {
-    const output = execSync(command, { encoding: 'utf8', cwd: __dirname + '/..' });
+    const output = execSync(`node ${suite.file}`, { encoding: 'utf-8', cwd: __dirname + '/..' });
     console.log(output.trim());
-    console.log(`✔ [${title}] PASSED\n`);
+    console.log(`✔ [${suite.name}] PASSED\n`);
   } catch (err) {
+    console.error(`✖ [${suite.name}] FAILED:`);
     console.error(err.stdout || err.message);
-    console.error(`✖ [${title}] FAILED\n`);
     allPassed = false;
+    break;
   }
 }
 
-const t0 = Date.now();
+const totalDurationMs = Date.now() - t0;
 
-runSuite('1. PII Precision & Recall Benchmark (15 Fixtures)', 'node benchmark/run-benchmark.js');
-runSuite('2. Semantic Action Resolution & Safety Suite', 'node benchmark/run-resolver-test.js');
-runSuite('3. Security Invariants & Vault Defense Suite', 'node benchmark/run-security-test.js');
-runSuite('4. Adversarial Attack Penetration Suite', 'node benchmark/run-adversarial-attacks.js');
-runSuite('5. Empirical Architecture Ablation Study', 'node benchmark/run-ablation-study.js');
-
-const elapsed = Date.now() - t0;
-
-console.log('======================================================================');
 if (allPassed) {
-  console.log(`🏆 ALL 5 EVALUATION SUITES PASSED in ${elapsed} ms!`);
+  console.log('======================================================================');
+  console.log(`🏆 ALL 5 EVALUATION SUITES PASSED in ${totalDurationMs} ms!`);
   console.log('   - PII Precision: 100.0% | PII Recall: 100.0%');
   console.log('   - Leakage Rate:  0.00%   | Penetration Attacks: 0 Breaches (7/7 Blocked)');
   console.log('   - Ablation: Multi-Signal (100% F1, 8.7ms, 84MB) vs Naive VLM (185ms, 1.4GB)');
-  console.log('======================================================================\n');
+  console.log('======================================================================');
   process.exit(0);
 } else {
-  console.error(`💥 SOME TEST SUITES FAILED! Check logs above.`);
-  console.log('======================================================================\n');
+  console.error('\n🚫 Benchmark verification failed.');
   process.exit(1);
 }
