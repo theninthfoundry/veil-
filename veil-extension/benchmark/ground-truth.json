@@ -6,5 +6,13 @@
   "negative-control.html": {},
   "healthcare-form.html": { "name": 1, "phone": 1, "address": 1 },
   "kyc-summary.html": { "aadhaar": 1, "pan": 1, "email": 1 },
-  "receipt.html": { "credit_card": 1 }
+  "receipt.html": { "credit_card": 1 },
+
+  "bank-dashboard.html": { "email": 1, "phone": 2 },
+  "govt-portal.html": { "aadhaar": 1, "pan": 1 },
+  "ecommerce-receipt.html": { "email": 1, "phone": 1 },
+  "social-profile.html": { "email": 1, "phone": 1 },
+  "obfuscated-form.html": { "email": 1, "phone": 1, "credit_card": 1, "aadhaar": 1, "pan": 1 },
+  "mixed-content.html": { "name": 1, "email": 2, "phone": 1, "address": 1 },
+  "false-positive-stress.html": { "email": 1 }
 }
