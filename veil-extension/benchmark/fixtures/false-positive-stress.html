@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Tech Industry Report 2026 — TechCrunch</title></head>
+<body>
+  <article>
+    <h1>India's Fintech Boom: 2026 In Review</h1>
+    <p class="byline">By Rohan Agarwal | September 1, 2026</p>
+
+    <p>
+      The Indian fintech sector processed approximately 14,523,000,000 digital
+      transactions in the first half of 2026, according to NPCI data. The
+      number 14523000000 might look numeric enough to trigger pattern matchers,
+      but it's a statistic, not a card number — and it fails Luhn anyway.
+    </p>
+
+    <p>
+      Razorpay's CEO Harshil Mathur told us that their platform now handles
+      over 500,000 transactions per day across 8 million businesses. "We've
+      seen growth rates of 45-50% year over year," he said in a March 2026
+      interview. When asked about competition from PhonePe and Paytm, Mathur
+      pointed to their enterprise segment: "Tata Steel, Reliance Retail, and
+      HDFC Bank are among our top 100 clients."
+    </p>
+
+    <!-- Names in journalistic prose should NOT trigger name detection:
+         Harshil Mathur, Razorpay, Tata Steel, etc. These are editorial
+         mentions, not PII in a form. The detector shouldn't be this noisy. -->
+
+    <p>
+      Product codes in the fintech space follow varied formats. NACH mandates
+      use a 22-digit reference like NACH00000000012345678 — long enough to
+      trigger digit-run patterns. UPI references are typically 12 digits:
+      234567890123. RBI circular numbers look like RBI/2026-27/045 and
+      DPSS.CO.PD/No.567/02.14.003/2026-27 — neither should match anything.
+    </p>
+
+    <p>
+      Meanwhile, SEBI registered 4,521 new FPIs this quarter. The registration
+      numbers follow format IN-FP-001-23456, and ISIN codes for listed
+      securities use format INE123A01016 — the latter has exactly 5 letters
+      followed by 4 digits and 1 letter, which is the PAN format.
+    </p>
+    <!-- INE123A01016 has 12 characters total, not 10 like a PAN — but the
+         substring "E123A01016" is only 10 chars and isn't 5-letter-4-digit-1-letter
+         either. The real trap is something like "ABCDE1234F" which IS valid
+         PAN format — but it appears as a code, not someone's actual PAN. -->
+
+    <p>
+      For reference, India's mobile subscriber base crossed 1.2 billion in
+      Q2 2026, per TRAI. Average data consumption was 19.5 GB per user per
+      month. Customer service numbers for major operators: Airtel (121),
+      Jio (198), Vi (199). These 3-digit numbers should obviously not match
+      as phone numbers.
+    </p>
+
+    <p>
+      GST collections in August 2026 hit ₹1,87,000 crore. The Finance
+      Ministry's official GST portal (gst.gov.in) shows registrations
+      at 1.45 crore active GSTINs.
+    </p>
+  </article>
+
+  <aside>
+    <h3>Newsletter</h3>
+    <p>Get our weekly roundup delivered to your inbox.</p>
+    <form>
+      <input type="email" name="newsletter_email" placeholder="Enter your email" autocomplete="email">
+      <button type="submit">Subscribe</button>
+    </form>
+    <!-- This one email field IS real PII and should be detected. -->
+  </aside>
+</body>
+</html>
