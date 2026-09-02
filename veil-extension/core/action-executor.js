@@ -59,6 +59,7 @@
       const win = (element.ownerDocument && element.ownerDocument.defaultView) || (typeof window !== 'undefined' ? window : globalThis);
       element.dispatchEvent(new win.Event('input', { bubbles: true }));
       element.dispatchEvent(new win.Event('change', { bubbles: true }));
+    element.dispatchEvent(new win.Event('blur', { bubbles: true }));
 
       return {
         ok: true,
