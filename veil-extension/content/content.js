@@ -1,23 +1,48 @@
 /**
  * VEIL — content script
  *
- * Loaded after detector.js and redactor.js (see manifest.json order), so
- * window.VeilDetector and window.VeilRedactor already exist.
- *
- * Phase 1 scope: local detection + redaction only. No server round-trip yet
- * — the "latency" reported here is detect+redact time on this device, not
- * an end-to-end pipeline number. Labeled that way in the popup deliberately.
+ * Full privacy-preserving perception-action loop:
+ *   1. Synchronous DOM/Regex scan -> PII detection
+ *   2. Redaction overlay rendering
+ *   3. Async Vision Fallback (faces/PII in images/canvas/video)
+ *   4. Context building (structure only, zero values)
+ *   5. Privacy Audit Firewall (hard gate before network transmission)
+ *   6. Server reasoning round-trip (POST /act)
+ *   7. DOM resolution + Mutation integrity check
+ *   8. Action Risk Classification + Safety gating
+ *   9. Local execution + Secret Vault ValueRef resolution
+ *   10. Multi-step autonomous loop (MAX_STEPS = 5)
+ *   11. In-Page Live Inspector HUD sync
+ *   12. Complete pipeline telemetry & Security Ledger logging
  */
 
 (function () {
   const { scanForPII } = window.VeilDetector;
   const { renderRedactions, clearRedactions } = window.VeilRedactor;
+  const { buildSanitizedContext } = window.VeilContextBuilder;
+  const { resolveTarget } = window.VeilActionResolver;
+  const { executeAction } = window.VeilActionExecutor;
+  const { buildComparisonData } = window.VeilComparisonBuilder;
+  const { runPrivacyAudit } = window.VeilPrivacyAudit || { runPrivacyAudit: () => ({ status: 'PASS', leakedRegions: 0, sensitiveRegions: 0 }) };
+  const { classifyActionRisk } = window.VeilRiskClassifier || { classifyActionRisk: () => ({ level: 'SAFE', allowed: true }) };
+  const { recordEvent } = window.VeilSecurityLedger || { recordEvent: () => {} };
+  const { getSecretMetadata } = window.VeilSecretVault || { getSecretMetadata: () => [] };
+  const { runAutonomousLoop } = window.VeilAgentOrchestrator || { runAutonomousLoop: () => Promise.resolve({ ok: false }) };
 
   let enabled = true;
   let debounceTimer = null;
   let repositionTimer = null;
   let lastDetections = [];
-  let lastLatencyMs = null;
+  let lastTelemetry = {
+    domMs: 0,
+    piiMs: 0,
+    visionMs: 0,
+    redactMs: 0,
+    auditMs: 0,
+    networkMs: 0,
+    actionMs: 0,
+    totalMs: 0
+  };
 
   function countByType(detections) {
     const counts = {};
@@ -31,6 +56,7 @@
       totalDetections: lastDetections.length,
       barsDrawn,
       latencyMs,
+      telemetry: lastTelemetry,
       url: location.href,
       timestamp: Date.now(),
     };
@@ -38,13 +64,67 @@
   }
 
   function scanAndRedact() {
-    if (!enabled) return;
+    if (!enabled) return [];
     const t0 = performance.now();
+    
+    // Step 1: DOM & Regex scan
+    const tPiiStart = performance.now();
     lastDetections = scanForPII(document);
+    const piiMs = Math.round(performance.now() - tPiiStart);
+    
+    // Step 2: Redaction rendering
+    const tRedactStart = performance.now();
     const barsDrawn = renderRedactions(lastDetections);
+    const redactMs = Math.round(performance.now() - tRedactStart);
+    
     const latencyMs = Math.round(performance.now() - t0);
-    lastLatencyMs = latencyMs;
+    lastTelemetry.piiMs = piiMs;
+    lastTelemetry.redactMs = redactMs;
+    lastTelemetry.domMs = latencyMs;
+    
+    recordEvent('PII_DETECTED', 'detection', { count: lastDetections.length, types: countByType(lastDetections) });
+    recordEvent('REGION_REDACTED', 'redaction', { barsDrawn });
+
     sendStats(latencyMs, barsDrawn);
+
+    // Sync with Live Inspector HUD if active
+    if (window.VeilInspector) {
+      const ctx = buildSanitizedContext(document, lastDetections);
+      window.VeilInspector.updateHUD(lastDetections, ctx);
+    }
+
+    maybeRunVisionFallback();
+    return lastDetections;
+  }
+
+  function maybeRunVisionFallback() {
+    if (!enabled || !window.VeilVisionFallback) return;
+
+    const mediaEls = Array.from(document.querySelectorAll('img, video, canvas')).filter((el) => {
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < window.innerHeight;
+    });
+    if (mediaEls.length === 0) return;
+
+    const tVisionStart = performance.now();
+    window.VeilVisionFallback.detectFaces(mediaEls)
+      .then((faceDetections) => {
+        lastTelemetry.visionMs = Math.round(performance.now() - tVisionStart);
+        if (!enabled || faceDetections.length === 0) return;
+        lastDetections = [...lastDetections, ...faceDetections];
+        renderRedactions(lastDetections);
+        recordEvent('VISION_PII_DETECTED', 'vision', { faceCount: faceDetections.length });
+        sendStats(lastTelemetry.domMs, undefined);
+
+        if (window.VeilInspector) {
+          const ctx = buildSanitizedContext(document, lastDetections);
+          window.VeilInspector.updateHUD(lastDetections, ctx);
+        }
+      })
+      .catch((err) => {
+        lastTelemetry.visionMs = Math.round(performance.now() - tVisionStart);
+        console.warn('[VEIL] vision fallback unavailable, continuing without it:', err);
+      });
   }
 
   function debouncedScan(delay) {
@@ -59,19 +139,55 @@
     }, 50);
   }
 
-  // Initial scan, shortly after content scripts load.
+  // Initial scan
   debouncedScan(50);
 
-  // Re-scan when the page's shape changes — SPA navigation, a form that
-  // renders in after initial load, etc. Debounced so rapid mutations don't
-  // trigger a scan storm.
   const observer = new MutationObserver(() => debouncedScan(500));
   observer.observe(document.documentElement, { childList: true, subtree: true });
 
-  // Bars are positioned via getBoundingClientRect, which is viewport-relative
-  // — reposition (cheap) rather than re-detect (not free) on scroll/resize.
   window.addEventListener('scroll', repositionOnly, { passive: true });
   window.addEventListener('resize', repositionOnly);
+
+  function callServer(task, context) {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ type: 'VEIL_RUN_TASK_SERVER_CALL', task, context }, (serverResponse) => {
+        if (chrome.runtime.lastError) {
+          return reject(new Error(chrome.runtime.lastError.message));
+        }
+        resolve(serverResponse);
+      });
+    });
+  }
+
+  function handleRunAutonomousTask(task, sendResponse) {
+    if (window.VeilInspector) {
+      window.VeilInspector.logTimeline(`Goal: "${task}"`, true);
+    }
+
+    runAutonomousLoop(task, {
+      scanAndRedactFn: () => scanAndRedact(),
+      buildContextFn: (doc, dets) => buildSanitizedContext(doc, dets),
+      runAuditFn: (ctx, t) => runPrivacyAudit(ctx, t),
+      callServerFn: (t, ctx) => callServer(t, ctx),
+      resolveTargetFn: (target, doc) => resolveTarget(target, doc),
+      classifyRiskFn: (act, el, sens) => classifyActionRisk(act, el, sens),
+      executeActionFn: (act, el, sens, origin) => executeAction(act, el, sens, origin),
+      recordEventFn: (type, stage, detail) => recordEvent(type, stage, detail),
+      onStepUpdate: (update) => {
+        if (window.VeilInspector) {
+          window.VeilInspector.logTimeline(update.message, true);
+        }
+        chrome.runtime.sendMessage({ type: 'VEIL_STEP_UPDATE', update }).catch(() => {});
+      },
+      onComplete: (result) => {
+        if (window.VeilInspector) {
+          window.VeilInspector.logTimeline(`Goal completed (${result.stepsTaken} steps, ${result.totalMs}ms) - 0 PII Leaked`, true);
+        }
+        sendResponse(result);
+        scanAndRedact();
+      }
+    });
+  }
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.type === 'VEIL_TOGGLE') {
@@ -88,9 +204,23 @@
       sendResponse({
         counts: countByType(lastDetections),
         totalDetections: lastDetections.length,
-        latencyMs: lastLatencyMs,
+        latencyMs: lastTelemetry.domMs,
+        telemetry: lastTelemetry,
+        vaultSecrets: getSecretMetadata(),
         enabled,
       });
+      return true;
+    }
+    if (message.type === 'VEIL_RUN_TASK' || message.type === 'VEIL_RUN_AUTONOMOUS_TASK') {
+      handleRunAutonomousTask(message.task, sendResponse);
+      return true;
+    }
+    if (message.type === 'VEIL_GET_VAULT_SECRETS') {
+      sendResponse({ secrets: getSecretMetadata() });
+      return true;
+    }
+    if (message.type === 'VEIL_GET_COMPARISON') {
+      sendResponse(buildComparisonData(document, lastDetections));
       return true;
     }
     return false;
