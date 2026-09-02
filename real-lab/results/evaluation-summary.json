@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-02T07:26:44.961Z",
+  "timestamp": "2026-09-02T09:19:02.728Z",
   "totalCases": 10,
   "modesEvaluated": [
     "OBSERVE",
@@ -12,6 +12,6 @@
     "piiRecall": "100.0%",
     "outboundLeakageRate": "0.00%",
     "attacksBlocked": "7 / 7 (100%)",
-    "evaluationDurationMs": 509
+    "evaluationDurationMs": 775
   }
 }

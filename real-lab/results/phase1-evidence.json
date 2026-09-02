@@ -1,0 +1,34 @@
+{
+  "experiment": "VEIL_PHASE_1_REAL_OLLAMA",
+  "timestamp": "2026-09-02T11:00:57.126Z",
+  "environment": {
+    "node": "v22.22.3",
+    "platform": "win32"
+  },
+  "evidenceMode": true,
+  "ollama": {
+    "endpoint": "http://localhost:11434",
+    "online": false,
+    "models": [],
+    "selectedModel": "qwen2-vl:7b"
+  },
+  "serverGateway": {
+    "endpoint": "http://localhost:8000",
+    "online": false,
+    "health": null
+  },
+  "pipeline": {
+    "perceptionMs": 10.32,
+    "contextMs": 8.79,
+    "auditMs": 1.12,
+    "resolveMs": 3.1,
+    "riskMs": 0.18,
+    "execMs": 5.92,
+    "canarySecretLeaked": false,
+    "rawValuesLeaked": false,
+    "privacyAuditStatus": "PASS",
+    "valueRefResolvedLocally": true
+  },
+  "verdict": "PARTIAL_OLLAMA_OFFLINE",
+  "notes": "Perception, sanitization, privacy audit, and ValueRef execution are 100% verified. Live Ollama inference is marked UNPROVEN / BLOCKED because Ollama daemon is currently offline on host."
+}

@@ -138,12 +138,14 @@ test('Secret Vault: Resolves authorized secret on matching origin & field', () =
 
 // 9. Secret Vault: BLOCKS secret resolution on unauthorized domain
 test('Secret Vault: BLOCKS secret resolution on unauthorized domain', () => {
-  // Demo Card is restricted to localhost, 127.0.0.1
+  // Demo Card is strictly restricted to localhost, 127.0.0.1
   const res = resolveSecret('LOCAL_SECRET_01', 'evil-attacker.com', 'card_number');
-  // Check scope
-  assert.strictEqual(res.ok, true); // (DEFAULT_VAULT has '*' for demo; test unknown secret next)
+  assert.strictEqual(res.ok, false);
+  assert.ok(res.reason.includes('domain-scope-violation'));
+
   const unknownRes = resolveSecret('LOCAL_SECRET_99', 'localhost', 'card');
   assert.strictEqual(unknownRes.ok, false);
+  assert.ok(unknownRes.reason.includes('unknown-secret-reference'));
 });
 
 // 10. Action Executor: Injects local secret via valueRef into DOM element

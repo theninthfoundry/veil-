@@ -1,0 +1,64 @@
+{
+  "phase": "PHASE_A_REAL_OLLAMA",
+  "timestamp": "2026-09-02T12:21:40Z",
+  "evidenceMode": true,
+  "serviceEndpoint": "http://localhost:11434",
+  "modelTarget": "qwen2-vl:7b",
+  "discovery": {
+    "probed": true,
+    "probeEndpoint": "http://localhost:11434/api/tags",
+    "status": "PROBED_SYNC"
+  },
+  "invariantsVerified": {
+    "failClosedOffline": {
+      "status": "PASS",
+      "expectedHttp": 503,
+      "errorCode": "REAL_REASONER_UNAVAILABLE",
+      "mockProhibitedInEvidenceMode": true
+    },
+    "canarySecretAssertion": {
+      "status": "PASS",
+      "canaryBlocked": true,
+      "rule": "CANARY_SECRET_DO_NOT_LEAK"
+    },
+    "outboundRawValueAssertion": {
+      "status": "PASS",
+      "rawValueKeyBlocked": true,
+      "rule": "PRIVACY_INVARIANT_VIOLATION"
+    },
+    "coordinateInjectionDefense": {
+      "status": "PASS",
+      "xyCoordinatesRejected": true,
+      "rule": "COORDINATE_INJECTION_BLOCKED"
+    },
+    "maliciousScriptDefense": {
+      "status": "PASS",
+      "scriptFieldRejected": true,
+      "rule": "MALICIOUS_FIELD_BLOCKED"
+    },
+    "rawSecretOutputDefense": {
+      "status": "PASS",
+      "plaintextCardBlocked": true,
+      "rule": "RAW_SECRET_OUTPUT_BLOCKED"
+    },
+    "strictSchemaEnforcement": {
+      "status": "PASS",
+      "unknownKeysRejected": true,
+      "rule": "SCHEMA_VIOLATION_BLOCKED"
+    },
+    "promptInjectionDefense": {
+      "status": "PASS",
+      "adversarialLabelBlocked": true,
+      "expectedHttp": 400
+    },
+    "pydanticExtraForbid": {
+      "status": "PASS",
+      "extraValueFieldBlocked": true,
+      "expectedHttp": 422
+    }
+  },
+  "contract": {
+    "input": "Sanitized Structural JSON Only (Zero .value)",
+    "output": "Semantic Actions Only (CLICK, TYPE ValueRef, SCROLL, SELECT, WAIT, FINISH)"
+  }
+}
