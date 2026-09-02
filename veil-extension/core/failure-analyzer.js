@@ -89,6 +89,7 @@
    * }}
    */
   function explainFailure(rawReason, context = {}) {
+    if (!rawReason) return { code: 'ERR_NONE', title: 'Operational', severity: 'INFO' };
     const reason = (rawReason || '').toLowerCase();
 
     let matchedType = 'TARGET_NOT_RESOLVED';
