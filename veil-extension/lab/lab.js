@@ -145,7 +145,6 @@
   };
 
   function selectCase(caseKey) {
-    // Populates dual perception viewports dynamically
     const data = REAL_WORLD_CASES[caseKey];
     if (!data) return;
 
@@ -268,6 +267,17 @@
     runMasterSuiteBtn.disabled = false;
     runMasterSuiteBtn.textContent = '✔ ALL 30 CASES EVALUATED (100%)';
   });
+
+  const copyTelemetryBtn = document.getElementById('copyTelemetryBtn');
+  if (copyTelemetryBtn) {
+    copyTelemetryBtn.addEventListener('click', () => {
+      const text = telemetryJsonBox.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        copyTelemetryBtn.textContent = '✔ Copied!';
+        setTimeout(() => { copyTelemetryBtn.textContent = '📋 Copy JSON'; }, 1500);
+      });
+    });
+  }
 
   // Initial Case Selection
   selectCase('CASE #001');

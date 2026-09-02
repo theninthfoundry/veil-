@@ -173,7 +173,10 @@
       </div>
 
       <div class="audit-panel json-panel">
-        <div class="panel-header">📋 SCIENTIFIC AUDIT ARTIFACT (JSON TELEMETRY)</div>
+        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>📋 SCIENTIFIC AUDIT ARTIFACT (JSON TELEMETRY)</span>
+          <button id="copyTelemetryBtn" style="background: rgba(88, 166, 255, 0.15); border: 1px solid #58a6ff; color: #58a6ff; font-size: 10px; padding: 2px 8px; border-radius: 4px; cursor: pointer;">📋 Copy JSON</button>
+        </div>
         <pre class="telemetry-json-box" id="telemetryJsonBox">{
   "case": "case_001_ecommerce_checkout",
   "perception": {
