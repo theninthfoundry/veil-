@@ -431,3 +431,6 @@ h1 {
 /* Smooth transition for active case selection */
 .case-card { transition: transform 0.15s ease, border-color 0.15s ease; }
 .case-card:hover { transform: translateY(-1px); }
+
+/* Responsive breakpoint for compact displays */
+@media (max-width: 900px) { .dual-viewport-main { flex-direction: column; } }
