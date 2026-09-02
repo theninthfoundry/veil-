@@ -97,11 +97,11 @@
    * @returns {{ok: boolean, value?: string, reason?: string, secretId: string, label?: string}}
    */
   function resolveSecret(secretId, currentOrigin, fieldIdentifier) {
-    if (!secretId || typeof secretId !== 'string') {
-      return { ok: false, reason: 'invalid-secret-id', secretId: String(secretId) };
+    if (!secretId || typeof secretId !== 'string' || !/^LOCAL_SECRET_\d+$/i.test(secretId.trim())) {
+      return { ok: false, reason: 'invalid-secret-id-format', secretId: String(secretId) };
     }
 
-    const entry = inMemoryVault.find(s => s.secretId.toUpperCase() === secretId.toUpperCase());
+    const entry = inMemoryVault.find(s => s.secretId.toUpperCase() === secretId.trim().toUpperCase());
     if (!entry) {
       return { ok: false, reason: `unknown-secret-reference: ${secretId}`, secretId };
     }
