@@ -1,5 +1,10 @@
 /**
- * VEIL — shared DOM helpers
+ * VEIL — shared DOM & Frame Perception helpers
+ *
+ * Supports recursive traversal across:
+ *   - Standard Light DOM
+ *   - Open Shadow Roots (and nested Shadow DOM)
+ *   - Same-Origin and isolated iframe boundaries
  *
  * Pure, browser/jsdom-portable. No chrome.* APIs.
  */
@@ -12,12 +17,14 @@
     if (aria && aria.trim()) return aria.trim();
 
     if (el.id) {
-      const doc = el.ownerDocument;
-      const labels = doc.querySelectorAll('label');
-      for (const l of labels) {
-        if (l.htmlFor === el.id) {
-          const t = l.textContent.trim();
-          if (t) return t;
+      const doc = el.ownerDocument || (el.getRootNode && el.getRootNode());
+      if (doc && doc.querySelectorAll) {
+        const labels = doc.querySelectorAll('label');
+        for (const l of labels) {
+          if (l.htmlFor === el.id) {
+            const t = l.textContent.trim();
+            if (t) return t;
+          }
         }
       }
     }
@@ -45,13 +52,7 @@
   }
 
   /** Jaccard word overlap between two strings, 0..1. */
-  /**
- * Calculates Jaccard word overlap coefficient (0..1).
- * @param {string} a - First text string
- * @param {string} b - Second text string
- * @returns {number} Overlap coefficient
- */
-function wordOverlapScore(a, b) {
+  function wordOverlapScore(a, b) {
     const wa = new Set(normalize(a).split(' ').filter(Boolean));
     const wb = new Set(normalize(b).split(' ').filter(Boolean));
     if (wa.size === 0 || wb.size === 0) return 0;
@@ -62,7 +63,70 @@ function wordOverlapScore(a, b) {
     return intersect / union;
   }
 
-  const domUtilsExport = { labelFor, normalize, wordOverlapScore };
+  /**
+   * Recursively traverses all DOM nodes including open shadow roots.
+   * @param {Node|Element|Document} root
+   * @param {Function} callback - Invoked for each visited element
+   * @param {string} [shadowPath=''] - Current shadow root nesting path
+   */
+  function traverseAllNodes(root, callback, shadowPath = '') {
+    if (!root) return;
+
+    const walker = (node, path) => {
+      if (!node) return;
+      if (node.nodeType === 1 /* ELEMENT_NODE */) {
+        callback(node, path);
+
+        // Traverse open Shadow Root if present
+        if (node.shadowRoot) {
+          const newPath = path ? `${path} > ${node.tagName.toLowerCase()}` : node.tagName.toLowerCase();
+          for (const child of node.shadowRoot.childNodes) {
+            walker(child, newPath);
+          }
+        }
+      }
+
+      for (const child of node.childNodes || []) {
+        walker(child, path);
+      }
+    };
+
+    walker(root, shadowPath);
+  }
+
+  /**
+   * Recursively queries interactive elements across light DOM and shadow roots.
+   * @param {Document|Element} root
+   * @param {object} [frameInfo] - { frameId: string, origin: string }
+   * @returns {Array<Element>}
+   */
+  function queryAllInteractiveElements(root, frameInfo = { frameId: 'top', origin: 'self' }) {
+    const interactive = [];
+    const targetTags = new Set(['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A']);
+
+    traverseAllNodes(root, (el, shadowPath) => {
+      const tag = el.tagName;
+      if (targetTags.has(tag) || el.getAttribute('role') === 'button' || el.getAttribute('role') === 'textbox' || el.isContentEditable) {
+        // Tag element with frame context metadata
+        el._veilFrameInfo = {
+          frameId: frameInfo.frameId,
+          origin: frameInfo.origin,
+          shadowPath: shadowPath || 'light-dom'
+        };
+        interactive.push(el);
+      }
+    });
+
+    return interactive;
+  }
+
+  const domUtilsExport = {
+    labelFor,
+    normalize,
+    wordOverlapScore,
+    traverseAllNodes,
+    queryAllInteractiveElements
+  };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = domUtilsExport;
