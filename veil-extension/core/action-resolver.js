@@ -2,11 +2,8 @@
  * VEIL — action resolver
  *
  * The server never returns pixel coordinates — coordinates break on reflow,
- * zoom, or a different display, which is exactly the kind of thing that
- * fails live in a demo. Instead it returns a target the client resolves
- * itself: a data-veil-id if the server referenced one from the sanitized
- * context, falling back to fuzzy label matching on a natural-language
- * description.
+ * zoom, or a different display. Instead it returns a target the client resolves
+ * itself: a data-veil-id, DOM id, or natural-language fuzzy description.
  */
 
 (function () {
@@ -18,7 +15,7 @@
   const EXACT_MATCH_SCORE = 1.0;
 
   /**
-   * @param {{id?: string, description?: string}} target
+   * @param {{id?: string, description?: string, text?: string, name?: string}} target
    * @param {Document} document
    * @returns {Element|null}
    */
@@ -26,17 +23,24 @@
     if (!document || !document.querySelector) return null;
     if (!target) return null;
 
-    if (target.id && VEIL_ID_RE.test(target.id)) {
-      const byId = document.querySelector(`[data-veil-id="${target.id}"]`);
-      if (byId) return byId;
+    if (target.id) {
+      if (VEIL_ID_RE.test(target.id)) {
+        const byVeilId = document.querySelector(`[data-veil-id="${target.id}"]`);
+        if (byVeilId) return byVeilId;
+      }
+      try {
+        const byDomId = (document.getElementById && document.getElementById(target.id)) || document.querySelector(`[id="${target.id}"]`);
+        if (byDomId) return byDomId;
+      } catch (_) {}
     }
 
-    if (target.description) {
-      const candidates = document.querySelectorAll('[data-veil-id]');
+    const desc = target.description || target.text || target.name;
+    if (desc) {
+      const candidates = document.querySelectorAll('[data-veil-id], button, input, a, select, textarea');
       let best = null;
       let bestScore = 0;
       candidates.forEach((el) => {
-        const score = wordOverlapScore(target.description, labelFor(el));
+        const score = wordOverlapScore(desc, labelFor(el));
         if (score > bestScore) {
           bestScore = score;
           best = el;
@@ -48,7 +52,7 @@
     return null;
   }
 
-  const actionResolverExport = { resolveTarget, MIN_MATCH_SCORE };
+  const actionResolverExport = { resolveTarget, MIN_MATCH_SCORE, EXACT_MATCH_SCORE };
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = actionResolverExport;
   }
