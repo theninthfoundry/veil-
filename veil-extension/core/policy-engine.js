@@ -108,7 +108,7 @@
 
       // Check Account Deletion
       if (this.policy.actions.confirmAccountDeletion) {
-        if (/delete account|close account|terminate|destroy|erase all/i.test(descLower)) {
+        if (/delete.*account|close.*account|terminate|destroy|erase all/i.test(descLower)) {
           return {
             allowed: true,
             requiresConfirmation: true,
