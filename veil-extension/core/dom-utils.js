@@ -46,6 +46,7 @@
   function normalize(s) {
     return (s || '')
       .toLowerCase()
+      .replace(/(\d),(\d)/g, '$1$2')
       .replace(/[^a-z0-9 ]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
