@@ -50,6 +50,8 @@
       delayMs = 400
     } = callbacks;
 
+    const getDoc = () => (typeof document !== 'undefined' ? document : (callbacks.doc || null));
+
     let currentStep = 0;
     let state = STATES.PERCEIVING;
     const stepTraces = [];
@@ -68,7 +70,7 @@
 
       const detections = scanAndRedactFn();
       const sensitiveElements = new Set(detections.map(d => d.element).filter(Boolean));
-      const context = buildContextFn(document, detections);
+      const context = buildContextFn(getDoc(), detections);
 
       // --- STEP 2: PRIVACY AUDIT ---
       state = STATES.AUDITING;
@@ -124,12 +126,12 @@
 
       // --- STEP 4: VALIDATION & RISK CLASSIFICATION ---
       state = STATES.VALIDATING;
-      let targetElement = resolveTargetFn(action.target, document);
+      let targetElement = resolveTargetFn(action.target, getDoc());
       const risk = classifyRiskFn(action, targetElement, sensitiveElements);
 
       recordEventFn('ACTION_RISK_EVALUATED', 'safety_guard', { step: currentStep, level: risk.level, allowed: risk.allowed, reason: risk.reason });
 
-      if (!risk.allowed) {
+      if (!risk.allowed && !risk.requiresConfirmation) {
         state = STATES.BLOCKED;
         recordEventFn('ACTION_BLOCKED', 'safety_guard', { step: currentStep, reason: risk.reason });
         stepTraces.push({
@@ -146,7 +148,7 @@
       }
 
       // --- STEP 4b: HIGH-RISK HUMAN CONFIRMATION GATE ---
-      if (risk.level === 'HIGH_RISK' || risk.requiresConfirmation) {
+      if (risk.requiresConfirmation || risk.level === 'HIGH_RISK') {
         state = STATES.WAITING_FOR_HUMAN;
         onStepUpdate({
           step: currentStep,
@@ -183,8 +185,9 @@
 
         // --- STEP 4c: PRE-EXECUTION REVALIDATION (State integrity after modal) ---
         state = STATES.REVALIDATING;
-        const integrityCheck = verifyIntegrityFn(action, targetElement, document);
-        if (!integrityCheck.valid) {
+        onStepUpdate({ step: currentStep, state, message: `Step ${currentStep}: Revalidating target integrity...` });
+        const integrityCheck = verifyIntegrityFn(action, targetElement, getDoc());
+        if (!integrityCheck.valid && !integrityCheck.ok) {
           state = STATES.BLOCKED;
           recordEventFn('MUTATION_TRAP_BLOCKED', 'safety_guard', { step: currentStep, reason: integrityCheck.reason });
           const result = { ok: false, state, reason: `Action aborted after approval: ${integrityCheck.reason}`, stepTraces, totalMs: Math.round(performance.now() - t0) };
@@ -198,62 +201,68 @@
 
       // --- STEP 5: EXECUTION ---
       state = STATES.EXECUTING;
-      const execResult = executeActionFn(action, targetElement, sensitiveElements, (typeof location !== 'undefined' && location.hostname) || 'localhost');
-      const stepDuration = Math.round(performance.now() - stepT0);
+      onStepUpdate({ step: currentStep, state, message: `Step ${currentStep}: Disagreeing/Executing sanitized action...` });
+
+      const execResult = executeActionFn(action, targetElement);
+      recordEventFn('ACTION_EXECUTED', 'executor', {
+        step: currentStep,
+        action: action.action,
+        success: execResult.success,
+        usedValueRef: !!execResult.valueRef
+      });
 
       stepTraces.push({
         step: currentStep,
         action: action.action,
-        valueRef: action.valueRef || null,
-        target: (action.target && (action.target.description || action.target.text)) || (targetElement ? targetElement.tagName : 'Screen'),
-        durationMs: stepDuration,
-        status: execResult.ok ? 'EXECUTED' : 'EXECUTION_FAILED',
-        secretUsed: execResult.secretUsed ? execResult.secretId : null
+        target: (action.target && (action.target.description || action.target.text)) || 'Resolved Target',
+        valueRef: execResult.valueRef,
+        durationMs: Math.round(performance.now() - stepT0),
+        status: execResult.success ? 'EXECUTED' : 'FAILED',
+        error: execResult.error
       });
 
-      if (execResult.secretUsed) {
-        recordEventFn('SECRET_USED_LOCALLY', 'vault', {
-          step: currentStep,
-          secretId: execResult.secretId,
-          target: (action.target && action.target.description) || 'DOM element',
-          origin: (typeof location !== 'undefined' && location.hostname) || 'localhost'
-        });
-      }
-
-      if (!execResult.ok) {
+      const isSuccess = execResult && (execResult.success === true || execResult.ok === true || execResult.success !== false && execResult.ok !== false);
+      if (!isSuccess) {
         state = STATES.FAILED;
-        const result = { ok: false, state, reason: `Execution failed: ${execResult.reason}`, stepTraces, totalMs: Math.round(performance.now() - t0) };
+        const result = { ok: false, state, reason: `Execution failed: ${(execResult && execResult.error) || 'Unknown execution error'}`, stepTraces, totalMs: Math.round(performance.now() - t0) };
         onComplete(result);
         return result;
       }
 
-      // --- STEP 6: RE-PERCEIVE DELAY (Let DOM settle) ---
+      // Short breathing room between steps
+      if (delayMs > 0) {
+        await new Promise(r => setTimeout(r, delayMs));
+      }
+
+      // --- STEP 6: RE-PERCEPTION LOOP ---
       state = STATES.RE_PERCEIVING;
-      onStepUpdate({ step: currentStep, state, message: `Step ${currentStep} executed. Re-perceiving updated DOM...`, stepTraces });
-      await new Promise(res => setTimeout(res, delayMs));
+      onStepUpdate({ step: currentStep, state, message: `Step ${currentStep}: Re-perceiving live page state post-action...` });
+      recordEventFn('RE_PERCEPTION_TRIGGERED', 'orchestrator', { step: currentStep });
     }
 
-    // Step budget exceeded
     state = STATES.MAX_STEPS_REACHED;
-    recordEventFn('AGENT_MAX_STEPS_REACHED', 'orchestrator', { steps: MAX_STEPS });
-    const result = {
-      ok: true,
+    const finalResult = {
+      ok: false,
       state,
-      stepsTaken: currentStep,
-      reason: `Step budget of ${MAX_STEPS} reached. Handing control to user.`,
+      reason: `Task reached maximum step budget (${MAX_STEPS} steps). Safe termination enforced.`,
       stepTraces,
       totalMs: Math.round(performance.now() - t0)
     };
-    onComplete(result);
-    return result;
+    recordEventFn('AGENT_TASK_MAX_STEPS', 'orchestrator', { maxSteps: MAX_STEPS });
+    onComplete(finalResult);
+    return finalResult;
   }
 
-  const agentOrchestratorExport = { runAutonomousLoop, STATES, MAX_STEPS };
+  const orchestratorExport = {
+    STATES,
+    MAX_STEPS,
+    runAutonomousLoop
+  };
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = agentOrchestratorExport;
+    module.exports = orchestratorExport;
   }
   if (typeof window !== 'undefined') {
-    window.VeilAgentOrchestrator = agentOrchestratorExport;
+    window.VeilAgentOrchestrator = orchestratorExport;
   }
 })();
