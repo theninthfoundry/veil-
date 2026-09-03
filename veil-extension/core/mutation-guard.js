@@ -19,22 +19,29 @@
    * @param {Document} liveDoc - Live active document at execution time
    * @param {object} [contextOptions] - Expected origin, frameId, timestamp
    * @returns {{
+   *   ok: boolean,
    *   valid: boolean,
-   *   status: 'VALID' | 'STALE_TARGET' | 'MUTATION_DETECTED' | 'DISABLED_ELEMENT' | 'HIDDEN_ELEMENT' | 'ORIGIN_MISMATCH',
+   *   executed: boolean,
+   *   status: 'VALID' | 'TARGET_MUTATED' | 'MUTATION_DETECTED' | 'STALE_TARGET' | 'DISABLED_ELEMENT' | 'HIDDEN_ELEMENT' | 'ORIGIN_MISMATCH',
    *   resolvedElement: Element | null,
+   *   beforeFingerprint?: string,
+   *   afterFingerprint?: string,
+   *   similarity?: number,
    *   reason: string
    * }}
    */
   function verifyActionIntegrity(action, initialTargetElement, liveDoc, contextOptions = {}) {
     if (!action || !action.target) {
-      return { valid: true, status: 'VALID', resolvedElement: initialTargetElement, reason: 'Non-targeted action' };
+      return { ok: true, valid: true, executed: true, status: 'VALID', resolvedElement: initialTargetElement, reason: 'Non-targeted action' };
     }
 
     // Step 1: Re-resolve the target on the live DOM
     const liveTarget = resolver.resolveTarget ? resolver.resolveTarget(action.target, liveDoc) : initialTargetElement;
     if (!liveTarget) {
       return {
+        ok: false,
         valid: false,
+        executed: false,
         status: 'STALE_TARGET',
         resolvedElement: null,
         reason: 'Target element is no longer present in the active DOM (node removed / unmounted)'
@@ -44,7 +51,9 @@
     // Step 2: Verify Element is connected to the active document
     if (!liveTarget.isConnected && liveTarget.ownerDocument !== liveDoc) {
       return {
+        ok: false,
         valid: false,
+        executed: false,
         status: 'STALE_TARGET',
         resolvedElement: null,
         reason: 'Target element is disconnected from active document tree'
@@ -54,7 +63,9 @@
     // Step 3: Verify Enabled State
     if (liveTarget.disabled || liveTarget.getAttribute('aria-disabled') === 'true') {
       return {
+        ok: false,
         valid: false,
+        executed: false,
         status: 'DISABLED_ELEMENT',
         resolvedElement: liveTarget,
         reason: 'Target element is currently disabled'
@@ -66,22 +77,33 @@
     const liveText = (domUtils.labelFor ? domUtils.labelFor(liveTarget) : (liveTarget.textContent || '')).toLowerCase();
 
     if (expectedText && liveText) {
+      const expDigits = expectedText.replace(/\D/g, '');
+      const liveDigits = liveText.replace(/\D/g, '');
+      const numbersMismatch = expDigits && liveDigits && expDigits !== liveDigits;
       const overlap = domUtils.wordOverlapScore ? domUtils.wordOverlapScore(expectedText, liveText) : 1.0;
-      // If the label has drastically mutated (e.g. from "Delete Account" to "Delete Workspace"), abort
-      if (overlap < 0.25) {
+
+      // If the label has mutated or numbers changed (e.g. from "Transfer ₹5,000" to "Transfer ₹50,000"), abort
+      if (overlap < 0.60 || numbersMismatch) {
         return {
+          ok: false,
           valid: false,
-          status: 'MUTATION_DETECTED',
+          executed: false,
+          status: 'TARGET_MUTATED',
           resolvedElement: liveTarget,
-          reason: `Semantic mutation detected: Expected "${expectedText.slice(0, 30)}", live label is "${liveText.slice(0, 30)}" (Overlap: ${overlap.toFixed(2)})`
+          beforeFingerprint: expectedText,
+          afterFingerprint: liveText,
+          similarity: Number(overlap.toFixed(2)),
+          reason: `Semantic mutation detected: Expected "${expectedText.slice(0, 30)}", live label is "${liveText.slice(0, 30)}" (Overlap: ${overlap.toFixed(2)}${numbersMismatch ? ', Amount Mismatch' : ''})`
         };
       }
     }
 
     // Step 5: Verify Origin Integrity if specified
-    if (contextOptions.expectedOrigin && location.origin && location.origin !== contextOptions.expectedOrigin) {
+    if (contextOptions.expectedOrigin && typeof location !== 'undefined' && location.origin && location.origin !== contextOptions.expectedOrigin) {
       return {
+        ok: false,
         valid: false,
+        executed: false,
         status: 'ORIGIN_MISMATCH',
         resolvedElement: null,
         reason: `Origin mismatch: Expected ${contextOptions.expectedOrigin}, current origin is ${location.origin}`
@@ -89,14 +111,18 @@
     }
 
     return {
+      ok: true,
       valid: true,
+      executed: true,
       status: 'VALID',
       resolvedElement: liveTarget,
+      similarity: 1.0,
       reason: 'Target integrity verified across all 8 pre-execution checks'
     };
   }
 
   const mutationGuardExport = {
+    revalidateAction: verifyActionIntegrity,
     verifyActionIntegrity
   };
 

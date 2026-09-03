@@ -40,12 +40,15 @@ function assert(condition, name, details) {
 async function runFsmTests() {
   const dom = new JSDOM(`<!DOCTYPE html><html><body><button id="buy-btn">Place Order ₹4,999</button></body></html>`);
   const doc = dom.window.document;
+  global.document = doc;
+  global.window = dom.window;
   const buyBtn = doc.getElementById('buy-btn');
 
   // ---------------------------------------------------------------------------
   // Test 1: High-Risk Action with User Denial
   // ---------------------------------------------------------------------------
   console.log('\n--- 1. High-Risk Action with User Denial ---');
+  buyBtn.textContent = 'Place Order ₹4,999';
   let execCalled1 = false;
   let statesVisited1 = [];
 
@@ -63,7 +66,7 @@ async function runFsmTests() {
     verifyIntegrityFn: (act, el, d) => verifyActionIntegrity(act, el, d),
     executeActionFn: () => {
       execCalled1 = true;
-      return { ok: true };
+      return { ok: true, success: true };
     },
     recordEventFn: () => {},
     onStepUpdate: (up) => statesVisited1.push(up.state),
@@ -86,6 +89,7 @@ async function runFsmTests() {
   // Test 2: High-Risk Action with User Approval & Clean Revalidation
   // ---------------------------------------------------------------------------
   console.log('\n--- 2. High-Risk Action with User Approval ---');
+  buyBtn.textContent = 'Place Order ₹4,999';
   let execCalled2 = false;
   let statesVisited2 = [];
 
@@ -110,7 +114,7 @@ async function runFsmTests() {
     verifyIntegrityFn: (act, el, d) => verifyActionIntegrity(act, el, d),
     executeActionFn: () => {
       execCalled2 = true;
-      return { ok: true };
+      return { ok: true, success: true };
     },
     recordEventFn: () => {},
     onStepUpdate: (up) => statesVisited2.push(up.state),
@@ -133,7 +137,9 @@ async function runFsmTests() {
   // Test 3: Mutation Trap during Confirmation Display (Target Mutated)
   // ---------------------------------------------------------------------------
   console.log('\n--- 3. Mutation Trap During Confirmation Display ---');
+  buyBtn.textContent = 'Place Order ₹4,999';
   let execCalled3 = false;
+  let statesVisited3 = [];
 
   const res3 = await runAutonomousLoop('Complete purchase', {
     scanAndRedactFn: () => [],
@@ -150,10 +156,10 @@ async function runFsmTests() {
     verifyIntegrityFn: (act, el, d) => verifyActionIntegrity(act, el, d),
     executeActionFn: () => {
       execCalled3 = true;
-      return { ok: true };
+      return { ok: true, success: true };
     },
     recordEventFn: () => {},
-    onStepUpdate: () => {},
+    onStepUpdate: (up) => statesVisited3.push(up.state),
     delayMs: 10
   });
 
@@ -188,6 +194,10 @@ async function runFsmTests() {
 
   fs.writeFileSync(path.join(outDir, 'final-confirmation.json'), JSON.stringify(outputData, null, 2), 'utf-8');
   console.log(`\n✔ FSM confirmation evidence written to benchmark/results/final-confirmation.json (${passedAssertions}/${totalAssertions} assertions passed)`);
+
+  if (passedAssertions < totalAssertions) {
+    process.exitCode = 1;
+  }
 }
 
 runFsmTests().catch(console.error);
