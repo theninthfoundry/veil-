@@ -24,7 +24,7 @@ const PIXEL_FIXTURES = [
   {
     id: '01-pixel-email',
     name: 'Canvas Rendered Email',
-    pixelText: 'Contact: sreeshanth.rao@isro.res.in',
+    pixelText: 'Contact: test.user@example.com',
     bbox: { left: 20, top: 20, width: 280, height: 28 },
     expectedTypes: ['email'],
     isPositive: true
@@ -40,7 +40,7 @@ const PIXEL_FIXTURES = [
   {
     id: '03-pixel-card',
     name: 'Canvas Rendered Payment Card (Luhn Check)',
-    pixelText: 'Card Details: 5555 4444 3333 2222',
+    pixelText: 'Card Details: 4111 1111 1111 1111',
     bbox: { left: 15, top: 15, width: 300, height: 35 },
     expectedTypes: ['credit_card'],
     isPositive: true
@@ -224,6 +224,10 @@ async function runRealOcrBenchmark() {
 
   fs.writeFileSync(path.join(outDir, 'final-ocr.json'), JSON.stringify(outputData, null, 2), 'utf-8');
   console.log(`\n✔ Real pixel OCR evidence written to benchmark/results/final-ocr.json`);
+
+  if (fn > 0 || fp > 0) {
+    process.exitCode = 1;
+  }
 }
 
 runRealOcrBenchmark().catch(console.error);

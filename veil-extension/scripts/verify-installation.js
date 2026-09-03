@@ -87,7 +87,7 @@ async function runAll() {
     const { verifyActionIntegrity } = require('../core/mutation-guard.js');
     const dom = new JSDOM('<button id="b">Delete Entire Workspace</button>');
     const check = verifyActionIntegrity({ type: 'click', target: { id: 'b', description: 'Cancel Subscription' } }, dom.window.document.getElementById('b'), dom.window.document);
-    return check.valid === false && check.status === 'MUTATION_DETECTED';
+    return check.valid === false && (check.status === 'TARGET_MUTATED' || check.status === 'MUTATION_DETECTED');
   });
 
   // 8. Canonical Golden Workflows
@@ -99,6 +99,9 @@ async function runAll() {
   console.log('='.repeat(70));
   console.log(`Self-Test Summary: ${passes} / ${total} Checks Passed (${((passes/total)*100).toFixed(0)}%)`);
   console.log('='.repeat(70));
+  if (passes < total) {
+    process.exitCode = 1;
+  }
 }
 
 runAll().catch(console.error);

@@ -39,7 +39,7 @@ const certifications = [];
 // ===========================================================================
 console.log('\n--- [C1] PRIVACY BOUNDARY CERTIFICATION ---');
 const piiPayloads = [
-  { type: 'email', val: 'sreeshanth.rao@isro.res.in' },
+  { type: 'email', val: 'test.user@example.com' },
   { type: 'phone', val: '+91 98765-43210' },
   { type: 'aadhaar', val: '1234 5678 9012' },
   { type: 'pan', val: 'ABCDE1234F' },
@@ -78,7 +78,7 @@ console.log('\n--- [C2] SECRET ISOLATION CERTIFICATION ---');
 const authSecret = resolveSecret('LOCAL_SECRET_PASS', 'http://localhost:3000', 'password');
 const phishingSecret = resolveSecret('LOCAL_SECRET_PASS', 'https://phishing-domain.ru', 'password');
 
-const c2Status = (authSecret !== null && phishingSecret === null);
+const c2Status = (authSecret && authSecret.ok && phishingSecret && !phishingSecret.ok);
 console.log(`  ${c2Status ? '✔ [CERTIFIED]' : '✖ [FAILED]'} C2 Secret Isolation: Authorized origin resolved secret in-memory; Phishing origin rejected (null returned).`);
 certifications.push({
   gate: 'C2_SECRET_ISOLATION',
@@ -93,18 +93,32 @@ certifications.push({
 // ===========================================================================
 console.log('\n--- [C3] ACTION AUTHORITY CERTIFICATION ---');
 const maliciousActions = [
+  { action: null, name: 'Null Action Payload' },
+  { action: {}, name: 'Empty Action Object' },
+  { action: { type: 'CLICK' }, name: 'CLICK Missing Target' },
   { action: { type: 'CLICK', x: 9999, y: 9999 }, name: 'Raw Pixel Coordinate Injection' },
-  { action: { type: 'TYPE', value: 'malicious-injected-payload' }, name: 'Unsanitized Value Injection' },
+  { action: { type: 'TYPE', value: 'malicious-injected-payload' }, name: 'Unsanitized Value Injection Without Target' },
+  { action: { type: 'TYPE', target: { id: 'pwd', sensitive: true }, value: 'plaintext-password' }, name: 'Raw Plaintext Credential Typing' },
   { action: { type: 'EXECUTE_JS', code: 'alert(document.cookie)' }, name: 'Arbitrary JavaScript Execution' },
-  { action: { type: 'TRANSFER', amount: 100000 }, name: 'Unauthorized Monetary Transfer' }
+  { action: { type: 'TRANSFER', amount: 100000 }, name: 'Unauthorized Monetary Transfer' },
+  { action: { type: 'NUCLEAR_LAUNCH' }, name: 'Unknown / Unsupported Action Primitive' }
 ];
 
 let c3Blocked = 0;
 for (const mal of maliciousActions) {
   const risk = classifyActionRisk(mal.action, null, new Set());
-  if (!risk.allowed || risk.level === 'HIGH_RISK' || risk.level === 'BLOCKED') {
+  const isTerminated = (!risk.allowed || risk.level === 'HIGH_RISK' || risk.level === 'BLOCKED');
+  console.log(`  Case:            ${mal.name}`);
+  console.log(`  Input:           ${JSON.stringify(mal.action)}`);
+  console.log(`  Classification:  ${risk.level}`);
+  console.log(`  Actual Decision: ${isTerminated ? 'BLOCKED / GATED' : 'ALLOWED'}`);
+  console.log(`  Expected:        BLOCKED / GATED`);
+  console.log(`  Reason:          ${risk.reason}`);
+  if (isTerminated) {
     c3Blocked++;
-    console.log(`  ✔ [DEFENSE TRIGGERED] ${mal.name} ➔ Terminated by Local Authority`);
+    console.log(`  ✔ [DEFENSE TRIGGERED] ${mal.name} ➔ Terminated by Local Authority\n`);
+  } else {
+    console.error(`  ✖ [FAILURE] ${mal.name} was not terminated by Local Authority\n`);
   }
 }
 
@@ -143,13 +157,20 @@ const mutDom = new JSDOM(`<!DOCTYPE html><html><body><button id="tx">Transfer �
 const txBtn = mutDom.window.document.getElementById('tx');
 const toctouCheck = verifyActionIntegrity({ type: 'click', target: { id: 'tx', description: 'Transfer ₹5,000' } }, txBtn, mutDom.window.document);
 
-const c5Status = (toctouCheck.valid === false && toctouCheck.status === 'MUTATION_DETECTED');
-console.log(`  ${c5Status ? '✔ [CERTIFIED]' : '✖ [FAILED]'} C5 TOCTOU Defense: Target fingerprint mismatch detected prior to execution ➔ ABORTED.`);
+console.log(`  BEFORE:      ${toctouCheck.beforeFingerprint || 'Transfer ₹5,000'}`);
+console.log(`  AFTER:       ${toctouCheck.afterFingerprint || 'Transfer ₹50,000'}`);
+console.log(`  SIMILARITY:  ${toctouCheck.similarity}`);
+console.log(`  STATUS:      ${toctouCheck.status}`);
+console.log(`  EXECUTED:    ${toctouCheck.executed}`);
+
+const c5Status = (toctouCheck.valid === false && (toctouCheck.status === 'TARGET_MUTATED' || toctouCheck.status === 'MUTATION_DETECTED') && toctouCheck.executed === false);
+console.log(`  ${c5Status ? '✔ [CERTIFIED]' : '✖ [FAILED]'} C5 TOCTOU Defense: Target fingerprint mismatch detected prior to execution (status: ${toctouCheck.status}, executed: ${toctouCheck.executed}) ➔ ABORTED.`);
 certifications.push({
   gate: 'C5_TOCTOU_MUTATION',
   title: 'TOCTOU Mutation Safety (Pre-Execution Target Revalidation)',
   status: c5Status ? 'CERTIFIED' : 'FAILED',
-  mismatchIntercepted: true
+  mismatchIntercepted: true,
+  executed: toctouCheck.executed
 });
 
 // ===========================================================================
@@ -243,8 +264,8 @@ const perfHtml = `
   <html>
   <body>
     <form id="pay-form">
-      <input id="name" type="text" autocomplete="name" value="Sreeshanth Rao">
-      <input id="email" type="email" value="sreeshanth@isro.res.in">
+      <input id="name" type="text" autocomplete="name" value="Test User">
+      <input id="email" type="email" value="test.user@example.com">
       <input id="phone" type="tel" value="+91 98765-43210">
       <input id="card" type="text" autocomplete="cc-number" value="4111 2222 3333 4444">
       <input id="cvv" type="password" value="892">
@@ -351,3 +372,8 @@ const outputData = {
 
 fs.writeFileSync(path.join(outDir, 'formal-certification.json'), JSON.stringify(outputData, null, 2), 'utf-8');
 console.log(`\n✔ Formal Seven-Pillar certification & distribution written to benchmark/results/formal-certification.json`);
+
+const allGatesPassed = certifications.every(c => c.status === 'CERTIFIED');
+if (!allGatesPassed) {
+  process.exitCode = 1;
+}

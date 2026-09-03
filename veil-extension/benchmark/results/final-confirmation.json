@@ -1,0 +1,59 @@
+{
+  "phase": "FINAL_HIGH_RISK_CONFIRMATION_FSM",
+  "timestamp": "2026-09-02T15:22:35.832Z",
+  "totalAssertions": 8,
+  "passedAssertions": 8,
+  "fsmLifecycle": {
+    "statesTested": [
+      "PERCEIVING",
+      "AUDITING",
+      "REASONING",
+      "VALIDATING",
+      "WAITING_FOR_HUMAN",
+      "REVALIDATING",
+      "EXECUTING",
+      "RE_PERCEIVING",
+      "FINISHED",
+      "BLOCKED"
+    ],
+    "pauseVerified": true,
+    "preExecutionRevalidationVerified": true,
+    "mutationTrapDefenseVerified": true
+  },
+  "cases": [
+    {
+      "test": "High-Risk Action Denial",
+      "statesVisited": [
+        "PERCEIVING",
+        "REASONING",
+        "WAITING_FOR_HUMAN"
+      ],
+      "executed": false,
+      "finalState": "BLOCKED",
+      "pass": true
+    },
+    {
+      "test": "High-Risk Action Approval",
+      "statesVisited": [
+        "PERCEIVING",
+        "REASONING",
+        "WAITING_FOR_HUMAN",
+        "REVALIDATING",
+        "EXECUTING",
+        "RE_PERCEIVING",
+        "PERCEIVING",
+        "REASONING"
+      ],
+      "executed": true,
+      "finalState": "FINISHED",
+      "pass": true
+    },
+    {
+      "test": "Mutation Trap Interception Post-Approval",
+      "executed": false,
+      "finalState": "BLOCKED",
+      "reason": "Action aborted after approval: Semantic mutation detected: Expected \"place order ₹4,999\", live label is \"delete entire workspace\" (Overlap: 0.00)",
+      "pass": true
+    }
+  ]
+}

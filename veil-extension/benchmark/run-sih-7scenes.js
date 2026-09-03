@@ -35,11 +35,11 @@ const SCENES = [
     scene: 1,
     name: 'Normal AI Agent Task & Local Sanitization',
     run: () => {
-      const dom = new JSDOM(`<div><input id="name" value="Sreeshanth Reddy"><input id="card" value="4111 2222 3333 4444"><button id="btn">Place Order</button></div>`);
+      const dom = new JSDOM(`<div><input id="email" type="email" value="test.user@example.com"><input id="card" value="4111 1111 1111 1111"><button id="btn">Place Order</button></div>`);
       const dets = detector.scanForPII(dom.window.document);
       const ctx = buildSanitizedContext(dom.window.document, dets);
       const rawValues = JSON.stringify(ctx);
-      const leaks = rawValues.includes('Sreeshanth') || rawValues.includes('4111');
+      const leaks = rawValues.includes('test.user') || rawValues.includes('4111');
       return { pass: !leaks && dets.length >= 2, message: 'Local perception identified PII; context serialized with 0 values' };
     }
   },
@@ -49,9 +49,13 @@ const SCENES = [
     scene: 2,
     name: 'Autonomous Task Execution via Local ValueRef Vault',
     run: () => {
-      const secret = resolveSecret('LOCAL_USER_NAME', 'http://localhost:3000', 'name-input');
-      const phishing = resolveSecret('LOCAL_USER_NAME', 'http://phishing.ru', 'name-input');
-      return { pass: secret !== null && phishing === null, message: 'Local ValueRef resolved for authorized origin; blocked for phishing' };
+      const auth = resolveSecret('LOCAL_SECRET_PASS', 'http://localhost:3000', 'password');
+      const phishing = resolveSecret('LOCAL_SECRET_PASS', 'https://phishing-domain.ru', 'password');
+      const pass = Boolean(auth && auth.ok === true && phishing && !phishing.ok);
+      return {
+        pass,
+        message: 'Local ValueRef resolved in-memory for authorized origin (localhost); blocked for untrusted origin (phishing-domain.ru)'
+      };
     }
   },
 
@@ -84,7 +88,8 @@ const SCENES = [
     run: () => {
       const dom = new JSDOM(`<button id="tx">Transfer ₹50,000</button>`);
       const check = verifyActionIntegrity({ type: 'click', target: { id: 'tx', description: 'Transfer ₹5,000' } }, dom.window.document.getElementById('tx'), dom.window.document);
-      return { pass: check.valid === false && check.status === 'MUTATION_DETECTED', message: 'Pre-execution revalidation intercepted price swap trap' };
+      const pass = check.valid === false && (check.status === 'TARGET_MUTATED' || check.status === 'MUTATION_DETECTED');
+      return { pass, message: 'Pre-execution revalidation intercepted price swap trap' };
     }
   },
 
@@ -131,7 +136,8 @@ async function runAllScenes() {
   }
 
   console.log('='.repeat(70));
-  console.log(`SIH 7-Scene Demonstration Summary: ${passedCount} / ${SCENES.length} Scenes Verified (100%)`);
+  const pct = ((passedCount / SCENES.length) * 100).toFixed(0);
+  console.log(`SIH 7-Scene Demonstration Summary: ${passedCount} / ${SCENES.length} Scenes Verified (${pct}%)`);
   console.log('='.repeat(70));
 
   const outDir = path.join(__dirname, 'results');
@@ -147,6 +153,10 @@ async function runAllScenes() {
 
   fs.writeFileSync(path.join(outDir, 'sih-7scenes.json'), JSON.stringify(outputData, null, 2), 'utf-8');
   console.log(`\n✔ SIH 7-scene verification written to benchmark/results/sih-7scenes.json`);
+
+  if (passedCount < SCENES.length) {
+    process.exitCode = 1;
+  }
 }
 
 runAllScenes().catch(console.error);
