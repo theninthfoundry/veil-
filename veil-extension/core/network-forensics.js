@@ -80,12 +80,22 @@
     }
 
     const isAllowed = violations.length === 0;
+    const sensitiveMatches = violations.length;
 
     return {
       allowed: isAllowed,
-      verdict: isAllowed ? 'ALLOWED' : 'BLOCKED',
+      blocked: !isAllowed,
+      verdict: isAllowed ? 'PASS' : 'BLOCKED',
+      status: isAllowed ? 'PASS' : 'BLOCKED',
       endpoint: endpoint || 'http://127.0.0.1:8000/act',
+      destination: endpoint || 'http://127.0.0.1:8000/act',
+      method: 'POST',
       byteSize,
+      payloadBytes: byteSize,
+      bytesSent: isAllowed ? byteSize : 0,
+      sensitiveMatches,
+      piiMatches: sensitiveMatches,
+      secretMatches: detectedCanaries.length,
       payloadHash,
       canaryDetected: detectedCanaries.length > 0,
       canaryTokens: detectedCanaries,
