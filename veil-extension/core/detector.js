@@ -33,8 +33,8 @@
 
   const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 
-  // 12 digits grouped 4-4-4 — the standard Aadhaar display format.
-  const AADHAAR_RE = /\b\d{4}\s\d{4}\s\d{4}\b/g;
+  // 12 digits grouped 4-4-4 — the standard Aadhaar display format (bounded to exactly 12 digits).
+  const AADHAAR_RE = /(?<!\d)(?:\d{4}\s\d{4}\s\d{4})(?!\s?\d)/g;
 
   // 5 letters, 4 digits, 1 letter — the PAN format.
   const PAN_RE = /\b[A-Z]{5}\d{4}[A-Z]\b/g;
@@ -153,7 +153,13 @@
       accepted.push(c);
     }
 
-    return accepted.map((c) => makeDetection(c.type, method, c.confidence, container));
+    return accepted.map((c) => ({
+      type: c.type,
+      method,
+      confidence: c.confidence,
+      element: container || null,
+      raw: c.raw
+    }));
   }
 
   // autocomplete spec values -> our type vocabulary
@@ -276,7 +282,7 @@ function scanForPII(root) {
     return [...scanFormFields(root), ...scanVisibleText(root)];
   }
 
-  const detectorExport = { scanForPII, luhnCheck, PII_TYPES };
+  const detectorExport = { scanForPII, scanText, luhnCheck, PII_TYPES };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = detectorExport;
