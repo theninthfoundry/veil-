@@ -67,6 +67,24 @@
       allowedOrigins: ['localhost', '127.0.0.1'],
       allowedFields: ['email', 'email_address', 'username'],
       value: 'sreeshanth@example.com'
+    },
+    {
+      secretId: 'LOCAL_SECRET_PASS',
+      label: 'User Master Password',
+      type: 'password',
+      maskedDisplay: '••••••••••••',
+      allowedOrigins: ['localhost', '127.0.0.1'],
+      allowedFields: ['password', 'pass', 'auth', 'pin', 'secret'],
+      value: 'SuperSecretPass#99'
+    },
+    {
+      secretId: 'LOCAL_USER_NAME',
+      label: 'Authorized Citizen Name',
+      type: 'name',
+      maskedDisplay: 'Sreeshanth R••••',
+      allowedOrigins: ['localhost', '127.0.0.1'],
+      allowedFields: ['name', 'fullname', 'name-input', 'username'],
+      value: 'Sreeshanth Reddy'
     }
   ];
 
@@ -97,7 +115,7 @@
    * @returns {{ok: boolean, value?: string, reason?: string, secretId: string, label?: string}}
    */
   function resolveSecret(secretId, currentOrigin, fieldIdentifier) {
-    if (!secretId || typeof secretId !== 'string' || !/^LOCAL_SECRET_[A-Z0-9_]+$/i.test(secretId.trim())) {
+    if (!secretId || typeof secretId !== 'string' || !/^LOCAL_[A-Z0-9_]+$/i.test(secretId.trim())) {
       return { ok: false, reason: 'invalid-secret-id-format', secretId: String(secretId) };
     }
 
