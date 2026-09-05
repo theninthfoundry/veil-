@@ -101,35 +101,66 @@
     return lastDetections;
   }
 
-  function maybeRunVisionFallback() {
-    if (!enabled || !window.VeilVisionFallback) return;
+  async function maybeRunVisionFallback() {
+    if (!enabled) return;
 
-    const mediaEls = Array.from(document.querySelectorAll('img, video, canvas')).filter((el) => {
+    const mediaEls = Array.from(document.querySelectorAll('img, video, canvas, svg')).filter((el) => {
       const r = el.getBoundingClientRect();
       return r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < window.innerHeight;
     });
     if (mediaEls.length === 0) return;
 
     const tVisionStart = performance.now();
-    const scanFn = window.VeilVisionFallback.scanVisualPII || window.VeilVisionFallback.detectFaces;
-    scanFn(mediaEls)
-      .then((visualDetections) => {
-        lastTelemetry.visionMs = Math.round(performance.now() - tVisionStart);
-        if (!enabled || !visualDetections || visualDetections.length === 0) return;
-        lastDetections = [...lastDetections, ...visualDetections];
-        renderRedactions(lastDetections);
-        recordEvent('VISION_PII_DETECTED', 'vision', { count: visualDetections.length });
-        sendStats(lastTelemetry.domMs, undefined);
+    const tasks = [];
 
-        if (window.VeilInspector) {
-          const ctx = buildSanitizedContext(document, lastDetections);
-          window.VeilInspector.updateHUD(lastDetections, ctx);
-        }
-      })
-      .catch((err) => {
-        lastTelemetry.visionMs = Math.round(performance.now() - tVisionStart);
-        console.warn('[VEIL] visual perception unavailable, continuing without it:', err);
-      });
+    // Task 1: On-Device Visual & Pixel OCR
+    if (window.VeilVisualOCR && window.VeilVisualOCR.scanVisualElement) {
+      tasks.push(
+        Promise.all(mediaEls.map((el) => window.VeilVisualOCR.scanVisualElement(el)))
+          .then((results) => results.flat())
+          .catch((err) => {
+            console.warn('[VEIL] Visual OCR pass notice:', err);
+            return [];
+          })
+      );
+    }
+
+    // Task 2: On-Device Face / Biometric Detection
+    if (window.VeilVisionFallback && (window.VeilVisionFallback.detectFaces || window.VeilVisionFallback.scanVisualPII)) {
+      const faceFn = window.VeilVisionFallback.detectFaces || window.VeilVisionFallback.scanVisualPII;
+      tasks.push(
+        faceFn(mediaEls).catch((err) => {
+          console.warn('[VEIL] Vision biometric pass notice:', err);
+          return [];
+        })
+      );
+    }
+
+    if (tasks.length === 0) return;
+
+    try {
+      const settled = await Promise.allSettled(tasks);
+      lastTelemetry.visionMs = Math.round(performance.now() - tVisionStart);
+
+      const visualDetections = settled
+        .filter((s) => s.status === 'fulfilled' && Array.isArray(s.value))
+        .flatMap((s) => s.value);
+
+      if (!enabled || visualDetections.length === 0) return;
+
+      lastDetections = [...lastDetections, ...visualDetections];
+      renderRedactions(lastDetections);
+      recordEvent('VISION_PII_DETECTED', 'vision', { count: visualDetections.length });
+      sendStats(lastTelemetry.domMs, undefined);
+
+      if (window.VeilInspector) {
+        const ctx = buildSanitizedContext(document, lastDetections);
+        window.VeilInspector.updateHUD(lastDetections, ctx);
+      }
+    } catch (err) {
+      lastTelemetry.visionMs = Math.round(performance.now() - tVisionStart);
+      console.warn('[VEIL] visual perception loop caught:', err);
+    }
   }
 
   function debouncedScan(delay) {
