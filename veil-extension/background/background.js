@@ -44,6 +44,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // keep the message channel open for the async response
   }
 
+  if (message.type === 'VEIL_FETCH_IMAGE_BLOB') {
+    fetch(message.url)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const buffer = await res.arrayBuffer();
+        const mime = res.headers.get('content-type') || 'image/png';
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        const base64 = btoa(binary);
+        sendResponse({ ok: true, dataUrl: `data:${mime};base64,${base64}` });
+      })
+      .catch((err) => sendResponse({ ok: false, error: String(err && err.message ? err.message : err) }));
+    return true;
+  }
+
   return false;
 });
 
