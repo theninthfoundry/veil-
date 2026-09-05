@@ -35,19 +35,24 @@
       let textToInject = (action.value != null ? String(action.value) : '').slice(0, 1000);
       let secretMetadata = null;
 
-      // Path A: Local Secret Reference Resolution (valueRef)
-      if (action.valueRef) {
+      // Path A: Single-Use Capability or Local Secret Reference Resolution
+      if (action.capabilityId || action.valueRef) {
         const fieldId = element.getAttribute('name') || element.getAttribute('id') || element.getAttribute('autocomplete') || '';
-        const vaultRes = secretVault.resolveSecret(action.valueRef, currentOrigin, fieldId);
+        let vaultRes;
+        if (action.capabilityId && typeof secretVault.consumeCapability === 'function') {
+          vaultRes = secretVault.consumeCapability(action.capabilityId, currentOrigin, fieldId);
+        } else {
+          vaultRes = secretVault.resolveSecret(action.valueRef, currentOrigin, fieldId);
+        }
 
         if (!vaultRes.ok) {
-          return { ok: false, reason: vaultRes.reason, secretId: action.valueRef };
+          return { ok: false, reason: vaultRes.reason, secretId: action.valueRef || action.capabilityId };
         }
 
         textToInject = vaultRes.value;
-        secretMetadata = { secretUsed: true, secretId: vaultRes.secretId, label: vaultRes.label };
+        secretMetadata = { secretUsed: true, secretId: vaultRes.secretId, label: vaultRes.label, capabilityId: vaultRes.capabilityId };
       }
-      // Path B: Remote attempted raw typing into sensitive element without ValueRef -> BLOCK
+      // Path B: Remote attempted raw typing into sensitive element without Capability / ValueRef -> BLOCK
       else if (isSensitive) {
         return { ok: false, reason: 'blocked-sensitive-field' };
       }

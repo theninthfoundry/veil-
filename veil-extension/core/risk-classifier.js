@@ -49,8 +49,41 @@
    *   error?: string
    * }}
    */
-  function classifyActionRisk(action, targetElement, sensitiveElements) {
-    // 1. Validate Input Structure
+  function classifyActionRisk(action, targetElement, sensitiveElements, options = {}) {
+    // 0. Delegate to Canonical Policy Decision Point if available
+    let engine = null;
+    if (typeof window !== 'undefined' && window.VeilPolicyEngine && window.VeilPolicyEngine.defaultPolicyEngine) {
+      engine = window.VeilPolicyEngine.defaultPolicyEngine;
+    } else if (typeof require !== 'undefined') {
+      try {
+        const pe = require('./policy-engine');
+        engine = pe.defaultPolicyEngine || (pe.PolicyEngine ? new pe.PolicyEngine() : null);
+      } catch (_) {}
+    }
+
+    if (engine && typeof engine.decide === 'function') {
+      const res = engine.decide({
+        action,
+        targetElement,
+        sensitiveElements,
+        origin: options.origin || '',
+        session: options.session || null,
+        budget: options.budget || null
+      });
+      return {
+        level: res.riskLevel,
+        allowed: res.allowed,
+        requiresConfirmation: res.requiresConfirmation,
+        requiresHuman: res.requiresHuman,
+        reason: res.reason,
+        error: res.error,
+        decision: res.decision,
+        policyVersion: res.policyVersion,
+        requiredCapabilities: res.requiredCapabilities
+      };
+    }
+
+    // 1. Standalone Fallback: Validate Input Structure
     if (!action || typeof action !== 'object' || Array.isArray(action)) {
       return { level: 'BLOCKED', allowed: false, requiresConfirmation: false, error: 'invalid-action', reason: 'Invalid or null action payload' };
     }

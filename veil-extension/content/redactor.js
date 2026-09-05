@@ -40,18 +40,20 @@
           box-sizing: border-box;
         }
         .veil-bar:hover::after {
-          content: attr(data-veil-reveal);
+          content: "🔒 [PROTECTED BY VEIL — LOCAL ONLY]";
           position: absolute;
           top: 100%;
           left: 0;
           margin-top: 4px;
           background: #14151A;
-          color: #F5F4F0;
-          font: 11px ui-monospace, "SF Mono", Menlo, monospace;
+          color: #38d39f;
+          font: 10px ui-monospace, "SF Mono", Menlo, monospace;
           padding: 3px 6px;
           border-radius: 3px;
           white-space: nowrap;
           z-index: 1;
+          pointer-events: none;
+          border: 1px solid #238636;
         }
       `;
       document.head.appendChild(style);
@@ -63,11 +65,8 @@
     return layer;
   }
 
-  function elementValue(el) {
-    if (!el) return '';
-    if ('value' in el && el.value) return String(el.value);
-    return (el.textContent || '').trim().slice(0, 80);
-  }
+  // WeakMap holding sensitive values strictly inside isolated extension memory
+  const internalSecretMemory = new WeakMap();
 
   /**
    * @param {Array<{type: string, element: Element|null, box?: {left:number,top:number,width:number,height:number}}>} detections
@@ -84,9 +83,6 @@
       let rect;
 
       if (d.box) {
-        // A sub-region of an element (e.g. one face inside an <img> that
-        // might contain several) — always draw, never deduped by element,
-        // since one element can legitimately need more than one bar here.
         if (d.box.width <= 0 || d.box.height <= 0) continue;
         rect = d.box;
       } else {
@@ -105,9 +101,13 @@
       bar.style.height = `${rect.height}px`;
       bar.dataset.veilType = d.type;
       bar.setAttribute('aria-hidden', 'true');
-      bar.dataset.veilReveal = d.box
-        ? `${d.type} — local only, never sent`
-        : `${d.type} — local only, never sent: ${elementValue(d.element)}`;
+
+      // CRITICAL SECURITY INVARIANT:
+      // NEVER mirror plaintext secrets into DOM attributes, CSS, or page-visible text.
+      // The page DOM sees only the opaque class and type identifier.
+      if (d.element) {
+        internalSecretMemory.set(bar, { type: d.type, timestamp: Date.now() });
+      }
 
       layer.appendChild(bar);
       drawn += 1;

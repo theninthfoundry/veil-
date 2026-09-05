@@ -80,13 +80,15 @@ The diagram below illustrates how VEIL sits between the live webpage and the rem
 ├──────────────────────────────────┼─────────────────────────────┼─────────────────────────────────┤
 │                                  │                             │                                 │
 │  Customer Name: Sreeshanth Reddy │       🔒 ON-DEVICE          │  {                              │
-│  Email Address: sreeshanth@isro  │      PRIVACY GATEWAY        │    "role": "textbox",           │
-│  Credit Card:   4111 2222 3333   │                             │    "name": "Customer Name",     │
-│  CVV:           892              │    • 0 Sensitive Bytes      │    "value": "[REDACTED]"        │
-│  Order Total:   ₹4,999.00        │    • 8/8 Canaries Blocked   │  },                             │
-│                                  │    • Extra="Forbid"         │  {                              │
-│  [ Place Order ₹4,999 ]          │    • 4.71 ms Local Latency  │    "role": "button",            │
-│                                  │                             │    "name": "Place Order ₹4,999" │
+│  Email Address: sreeshanth@isro  │      PRIVACY GATEWAY        │    "id": "veil-el-1",           │
+│  Credit Card:   4111 2222 3333   │                             │    "tag": "input",              │
+│  CVV:           892              │    • 0 Sensitive Bytes      │    "label": "Customer Name",     │
+│  Order Total:   ₹4,999.00        │    • 8/8 Canaries Blocked   │    "sensitive": true            │
+│                                  │    • Extra="Forbid"         │  },                             │
+│  [ Place Order ₹4,999 ]          │    • 4.71 ms Local Latency  │  {                              │
+│                                  │                             │    "id": "veil-el-4",           │
+│                                  │                             │    "tag": "button",             │
+│                                  │                             │    "label": "Place Order ₹4,999"│
 │                                  │                             │  }                              │
 │                                  │                             │                                 │
 └──────────────────────────────────┴─────────────────────────────┴─────────────────────────────────┘
@@ -468,46 +470,52 @@ SECURITY WATERFALL STREAM:
 
 <br/>
 
-## 14. Quick Start & Installation (Under 2 Minutes)
+## 14. Quick Start & Execution Commands
 
-### Step 1: Load the Extension in Google Chrome
-1. Open Google Chrome $\rightarrow$ Go to `chrome://extensions/`.
-2. Enable **Developer mode** (top-right toggle).
-3. Click **Load unpacked** (top-left) $\rightarrow$ Select the directory:
-   ```
-   d:\veil\veil-extension
-   ```
+### Prerequisites
+- Node.js v18+ (`node --version`)
+- Python 3.10+ (`python --version`)
+- Google Chrome v116+
 
-### Step 2: Open Mission Control in Chrome
-Open this file directly in your browser:
-```
-d:\veil\veil-extension\command-center\command-center.html
-```
-
-### Step 3: Run the 1-Command Master Verification Suite
-From `d:\veil` in your terminal:
+### Clean-Machine One-Command Execution:
 ```powershell
-node test.js
+# Pre-flight environment check
+.\scripts\doctor.ps1
+
+# Run automated test suites (30 attacks, network audit, FSM, real cases)
+.\scripts\verify.ps1
+
+# Run empirical performance & ablation benchmarks
+.\scripts\benchmark.ps1
+
+# Run formal Seven-Pillar Release Certification
+.\scripts\certify.ps1
 ```
-*(Or double-click [`run_test.bat`](file:///d:/veil/run_test.bat))*
+
+*(Windows batch equivalents: `scripts\doctor.bat`, `scripts\verify.bat`, `scripts\benchmark.bat`, `scripts\certify.bat`)*
+
+### Load Extension in Google Chrome:
+1. Open Chrome $\rightarrow$ `chrome://extensions/`.
+2. Enable **Developer mode** (top-right toggle).
+3. Click **Load unpacked** $\rightarrow$ select `d:\veil\veil-extension`.
+4. Open Mission Control: `d:\veil\veil-extension\command-center\command-center.html`.
 
 ---
 
 <br/>
 
-## 15. Complete Documentation Sitemap
+## 15. Grounded Technical Documentation
 
-- **[Installation & Setup Guide (INSTALL.md)](file:///d:/veil/INSTALL.md)** — Clean-machine setup walkthrough.
-- **[SIH Presentation & Demo Guide (DEMO.md)](file:///d:/veil/DEMO.md)** — 60-second and 5-minute winning pitch script.
-- **[Frozen Architecture Blueprint (ARCHITECTURE.md)](file:///d:/veil/ARCHITECTURE.md)** — Complete system design specification.
-- **[Formal Threat Model & Boundaries (THREAT_MODEL.md)](file:///d:/veil/THREAT_MODEL.md)** — Formal security threat model.
-- **[Empirical Latency & Benchmark Telemetry (BENCHMARKS.md)](file:///d:/veil/BENCHMARKS.md)** — P50/P95/P99 distribution tables.
-- **[Security Policy & Invariants (SECURITY.md)](file:///d:/veil/SECURITY.md)** — Security invariants and reporting.
-- **[Component Truth Audit Matrix (docs/RELEASE_TRUTH_MATRIX.md)](file:///d:/veil/docs/RELEASE_TRUTH_MATRIX.md)** — Grounded component audit.
-- **[Seven-Pillar Certification Dossier (docs/CERTIFICATION_EVIDENCE_DOSSIER.md)](file:///d:/veil/docs/CERTIFICATION_EVIDENCE_DOSSIER.md)** — Seven-gate test evidence.
-- **[Formal Invariant Specification (docs/FORMAL_SECURITY_INVARIANT.md)](file:///d:/veil/docs/FORMAL_SECURITY_INVARIANT.md)** — Formal trust boundary.
-- **[7-Scene SIH Demo Script (docs/SIH_7_SCENE_DEMO_SCRIPT.md)](file:///d:/veil/docs/SIH_7_SCENE_DEMO_SCRIPT.md)** — Scripted evaluation demo.
-- **[Release Candidate Specification (docs/VEIL_V1_RELEASE_CANDIDATE.md)](file:///d:/veil/docs/VEIL_V1_RELEASE_CANDIDATE.md)** — Master RC-1 report.
+- **[Forensic Reality Audit (docs/ARCHITECTURE_REALITY_AUDIT.md)](file:///d:/veil/docs/ARCHITECTURE_REALITY_AUDIT.md)** — Forensic reality audit of the codebase.
+- **[Final Target Architecture (docs/FINAL_ARCHITECTURE.md)](file:///d:/veil/docs/FINAL_ARCHITECTURE.md)** — Architectural specification of the VEIL Security Kernel.
+- **[Trust Boundary Specification (docs/TRUST_BOUNDARY.md)](file:///d:/veil/docs/TRUST_BOUNDARY.md)** — Three-domain security trust model.
+- **[Formal Threat Model (docs/THREAT_MODEL.md)](file:///d:/veil/docs/THREAT_MODEL.md)** — STRIDE classification and attack vector mitigations.
+- **[Grounded Truth Matrix (docs/VEIL_TRUTH_MATRIX.md)](file:///d:/veil/docs/VEIL_TRUTH_MATRIX.md)** — Verification status mapping every capability to tests.
+- **[Formal Security Invariants (docs/SECURITY_INVARIANTS.md)](file:///d:/veil/docs/SECURITY_INVARIANTS.md)** — Invariants $\mathcal{I}_1$ through $\mathcal{I}_7$.
+- **[Browser Compatibility & Constraints (docs/BROWSER_COMPATIBILITY.md)](file:///d:/veil/docs/BROWSER_COMPATIBILITY.md)** — Chromium MV3 target, Shadow DOM, and platform limits.
+- **[Benchmark Methodology (docs/BENCHMARK_METHODOLOGY.md)](file:///d:/veil/docs/BENCHMARK_METHODOLOGY.md)** — Empirical metrics, formulas, and test suites.
+- **[Limitations & Failure Modes (docs/LIMITATIONS.md)](file:///d:/veil/docs/LIMITATIONS.md)** — Transparent operational boundaries.
+- **[Clean-Machine Deployment Guide (docs/DEPLOYMENT.md)](file:///d:/veil/docs/DEPLOYMENT.md)** — Step-by-step setup and Ollama evidence mode.
 
 ---
 

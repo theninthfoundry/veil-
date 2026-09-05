@@ -75,6 +75,11 @@
     }
   ];
 
+  const getPolicy = () => (typeof require !== 'undefined' ? require('./policy-engine') : (window.VeilPolicyEngine && window.VeilPolicyEngine.defaultPolicyEngine));
+  const getVault = () => (typeof require !== 'undefined' ? require('./secret-vault') : window.VeilSecretVault);
+  const getMutationGuard = () => (typeof require !== 'undefined' ? require('./mutation-guard') : window.VeilMutationGuard);
+  const getExecutor = () => (typeof require !== 'undefined' ? require('./action-executor') : window.VeilActionExecutor);
+
   class WorkflowRunner {
     constructor(sessionManager = (typeof window !== 'undefined' ? window.VeilSession && window.VeilSession.globalSession : null)) {
       this.session = sessionManager;
@@ -89,8 +94,18 @@
       const wf = this.workflows.find(w => w.id === workflowId);
       if (!wf) throw new Error(`Workflow ${workflowId} not found`);
 
-      const { onStep = () => {}, onComplete = () => {} } = callbacks;
+      const {
+        onStep = () => {},
+        onComplete = () => {},
+        confirmationFn = () => Promise.resolve(true),
+        doc = (typeof document !== 'undefined' ? document : null)
+      } = callbacks;
+
       const t0 = performance.now();
+      const policy = getPolicy();
+      const vault = getVault();
+      const mutationGuard = getMutationGuard();
+      const executor = getExecutor();
 
       if (this.session) {
         this.session.setTask(wf.goal);
@@ -100,44 +115,103 @@
         const step = wf.steps[i];
         const stepT0 = performance.now();
 
+        // 1. Policy Evaluation
+        let policyRes = { allowed: true, requiresHuman: false, riskLevel: 'SAFE' };
+        if (policy && typeof policy.decide === 'function') {
+          policyRes = policy.decide({ action: step, origin: 'localhost' });
+        }
+
         onStep({
           workflowId: wf.id,
           stepIndex: i + 1,
           totalSteps: wf.steps.length,
           stepData: step,
-          status: 'EXECUTING'
+          status: 'EXECUTING',
+          riskLevel: policyRes.riskLevel || (step.expectRisk || 'SAFE'),
+          stepDurationMs: Number((performance.now() - stepT0).toFixed(2))
         });
 
-        // Simulate step latency
-        await new Promise(r => setTimeout(r, 200));
-
-        if (step.requiresAuth) {
+        // 2. Human Confirmation Gating (real policy gate)
+        if (step.requiresAuth || policyRes.requiresHuman || policyRes.riskLevel === 'HIGH_RISK') {
           onStep({
             workflowId: wf.id,
             stepIndex: i + 1,
             stepData: step,
             status: 'WAITING_FOR_HUMAN',
-            message: 'High-risk action flagged. Awaiting human confirmation.'
+            message: 'High-risk action flagged by policy. Awaiting human confirmation.'
           });
-          await new Promise(r => setTimeout(r, 300));
+
+          const approved = await confirmationFn({
+            action: step,
+            riskInfo: policyRes,
+            origin: 'localhost'
+          });
+
+          if (!approved) {
+            const result = {
+              ok: false,
+              workflow: wf,
+              status: 'ABORTED_BY_USER',
+              stepIndex: i + 1,
+              durationMs: Number((performance.now() - t0).toFixed(2))
+            };
+            onComplete(result);
+            return result;
+          }
         }
 
+        // 3. TOCTOU Mutation Trap Verification
         if (step.triggersTrap) {
-          onStep({
-            workflowId: wf.id,
-            stepIndex: i + 1,
-            stepData: step,
-            status: 'MUTATION_BLOCKED',
-            message: 'TOCTOU Mutation Trap detected prior to execution. Action aborted safely.'
-          });
-          const result = {
-            ok: false,
-            workflow: wf,
-            status: 'BLOCKED_BY_MUTATION_GUARD',
-            durationMs: Number((performance.now() - t0).toFixed(2))
+          // Construct simulated mutated element to test genuine mutation guard
+          const fakeTarget = {
+            textContent: 'Delete Entire Workspace',
+            isConnected: true,
+            disabled: false,
+            ownerDocument: doc || (typeof document !== 'undefined' ? document : {})
           };
-          onComplete(result);
-          return result;
+
+          let integrityCheck = { ok: false, status: 'TARGET_MUTATED', reason: 'Semantic mutation detected' };
+          if (mutationGuard && typeof mutationGuard.verifyActionIntegrity === 'function') {
+            integrityCheck = mutationGuard.verifyActionIntegrity(step, fakeTarget, doc || (typeof document !== 'undefined' ? document : {}));
+          }
+
+          if (!integrityCheck.ok || !integrityCheck.valid) {
+            onStep({
+              workflowId: wf.id,
+              stepIndex: i + 1,
+              stepData: step,
+              status: 'MUTATION_BLOCKED',
+              message: `TOCTOU Mutation Guard triggered: ${integrityCheck.reason || 'Semantic mismatch'}`,
+              stepDurationMs: Number((performance.now() - stepT0).toFixed(2))
+            });
+
+            const result = {
+              ok: false,
+              workflow: wf,
+              status: 'BLOCKED_BY_MUTATION_GUARD',
+              reason: integrityCheck.reason,
+              durationMs: Number((performance.now() - t0).toFixed(2))
+            };
+            onComplete(result);
+            return result;
+          }
+        }
+
+        // 4. ValueRef / Capability Resolution Check
+        if (step.valueRef && vault && typeof vault.resolveSecret === 'function') {
+          const fieldDesc = (step.target && step.target.description) || 'input';
+          const resolved = vault.resolveSecret(step.valueRef, 'localhost', fieldDesc);
+          if (!resolved.ok) {
+            const result = {
+              ok: false,
+              workflow: wf,
+              status: 'VAULT_RESOLUTION_FAILED',
+              reason: resolved.reason,
+              durationMs: Number((performance.now() - t0).toFixed(2))
+            };
+            onComplete(result);
+            return result;
+          }
         }
       }
 

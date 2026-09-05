@@ -21,9 +21,10 @@ Security:
 import os
 import re
 import time
+import uuid
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict
 
@@ -44,13 +45,14 @@ app = FastAPI(
     version="0.2.2",
 )
 
-# CORS for Chrome Extension requests (content script / service worker origin)
+# Restrict CORS to Chrome Extension origins and local testing loopbacks (NEVER wildcard "*")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex=r"^(chrome-extension://[a-z]{32}|http://localhost(:\d+)?|http://127\.0\.0\.1(:\d+)?)$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["X-Request-ID", "X-VEIL-Security-Boundary"],
 )
 
 
@@ -94,20 +96,26 @@ class ElementIn(BaseModel):
 
 
 class PageIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     elements: list[ElementIn]
 
 
 class ActRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     task: str
     page: PageIn
+    sessionId: Optional[str] = None
+    contextHash: Optional[str] = None
 
 
 class TargetOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     id: Optional[str] = None
     description: Optional[str] = None
 
 
 class ActResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     action: str
     target: Optional[TargetOut] = None
     value: Optional[str] = None
@@ -156,9 +164,26 @@ async def health():
 
 
 @app.post("/act", response_model=ActResponse)
-async def act(request: ActRequest):
+async def act(request: ActRequest, raw_request: Request, response: Response):
     t0 = time.perf_counter()
     evidence_mode = is_evidence_mode()
+
+    # --- Security: Request Tracking & Headers ---
+    req_id = raw_request.headers.get("X-Request-ID") or f"req_{uuid.uuid4().hex[:12]}"
+    response.headers["X-Request-ID"] = req_id
+    response.headers["X-VEIL-Security-Boundary"] = "ACTIVE"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+
+    # --- Security: Optional Gateway Token Authentication ---
+    gateway_token = os.environ.get("VEIL_GATEWAY_TOKEN")
+    if gateway_token:
+        auth_header = raw_request.headers.get("X-VEIL-Session-Key") or raw_request.headers.get("Authorization")
+        token_val = auth_header.replace("Bearer ", "").strip() if auth_header else ""
+        if token_val != gateway_token:
+            raise HTTPException(
+                status_code=401,
+                detail="Unauthorized: Missing or invalid VEIL gateway authentication token"
+            )
 
     # --- Security: prompt injection guard ---
     elements = [el.model_dump() for el in request.page.elements]
@@ -224,13 +249,37 @@ async def act(request: ActRequest):
         mock_client = MockVLMClient()
         result = await mock_client.decide(request.task, elements)
 
-    if result.get("action") not in ACTION_TYPES:
+    # --- Model-Output Security Firewall ---
+    action_type = result.get("action")
+    if action_type not in ACTION_TYPES:
         raise HTTPException(
-            502, f"VLM backend returned an invalid action: {result.get('action')!r}"
+            502, f"VLM backend returned an invalid action: {action_type!r}"
         )
+
+    # Reject dangerous code execution or XPath expressions in target id
+    target_data = result.get("target")
+    if isinstance(target_data, dict) and target_data.get("id"):
+        tid = str(target_data["id"])
+        if re.search(r"[<>\(\)\{\};]", tid) or tid.startswith("//"):
+            raise HTTPException(
+                502, f"Model-output firewall rejected unsafe target expression: {tid!r}"
+            )
+
+    # Inspect value for javascript: / script injection and credential echoes
+    val_data = result.get("value")
+    if val_data and isinstance(val_data, str):
+        if re.search(r"^\s*javascript:", val_data, re.IGNORECASE) or "<script" in val_data.lower():
+            raise HTTPException(
+                502, "Model-output firewall rejected script injection in action value."
+            )
+        if re.search(r"\b(?:\d[ -]?){13,19}\b", val_data):
+            raise HTTPException(
+                502, "Model-output firewall rejected raw card number in proposed action value."
+            )
 
     elapsed_ms = round((time.perf_counter() - t0) * 1000, 2)
     telemetry_data = {
+        "requestId": req_id,
         "serverLatencyMs": elapsed_ms,
         "activeBackend": active_backend,
         "evidenceMode": evidence_mode,
@@ -240,8 +289,21 @@ async def act(request: ActRequest):
     if "_telemetry" in result:
         telemetry_data.update(result.pop("_telemetry"))
 
+    # Construct strictly validated ActResponse
+    safe_target = None
+    if isinstance(target_data, dict):
+        safe_target = TargetOut(
+            id=target_data.get("id"),
+            description=target_data.get("description")
+        )
+
     return ActResponse(
-        **result,
+        action=action_type,
+        target=safe_target,
+        value=result.get("value"),
+        valueRef=result.get("valueRef"),
+        confidence=float(result.get("confidence") or 0.0),
+        reasoning=str(result.get("reasoning") or ""),
         telemetry=telemetry_data,
     )
 
