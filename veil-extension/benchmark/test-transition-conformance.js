@@ -39,7 +39,7 @@ class TransitionOracle {
     let decision = 'ALLOW';
     let failureReason = null;
 
-    if (isTainted && (isFinancial || isSecret || action.risk === 'HIGH')) {
+    if (isTainted) {
       decision = 'BLOCK';
       failureReason = 'ERR_TAINT_PROPAGATION';
     } else if (isFinancial || action.risk === 'CRITICAL') {

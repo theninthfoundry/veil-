@@ -64,29 +64,30 @@ async function runAttackerSimulation() {
       }
 
       case 'ADV-05-CAPABILITY-REPLAY': {
-        const legToken = capMgr.issueCapability({ actionType: 'CLICK', targetFingerprint: 'btn:test' });
-        capMgr.consumeCapability(legToken.capabilityId, { actionType: 'CLICK', targetFingerprint: 'btn:test' });
-        const replay = capMgr.consumeCapability(legToken.capabilityId, { actionType: 'CLICK', targetFingerprint: 'btn:test' });
+        const legToken = capMgr.issueCapability({ actionType: 'CLICK', targetFingerprint: 'btn:test', stateHash: 'state_attacker_05' });
+        capMgr.consumeCapability(legToken.capabilityId, { actionType: 'CLICK', targetFingerprint: 'btn:test', stateHash: 'state_attacker_05' });
+        const replay = capMgr.consumeCapability(legToken.capabilityId, { actionType: 'CLICK', targetFingerprint: 'btn:test', stateHash: 'state_attacker_05' });
         defenseObserved = (!replay.ok && replay.reason.includes('already consumed'));
         defenseReason = replay.reason;
         break;
       }
 
       case 'ADV-06-TOCTOU-PRICE-SWAP': {
+        btn.textContent = atk.initialLabel;
         const guardCheck = mutationGuard.verifyActionIntegrity(
-          { type: 'click', target: { description: atk.initialLabel } },
+          { type: 'click', target: { id: 'action-btn', description: atk.initialLabel } },
           btn,
           doc
         );
         btn.textContent = atk.tamperedLabel;
         const tamperedGuardCheck = mutationGuard.verifyActionIntegrity(
-          { type: 'click', target: { description: atk.initialLabel } },
+          { type: 'click', target: { id: 'action-btn', description: atk.initialLabel } },
           btn,
           doc
         );
         defenseObserved = (!tamperedGuardCheck.ok && tamperedGuardCheck.status === 'TARGET_MUTATED');
         defenseReason = tamperedGuardCheck.reason;
-        btn.textContent = atk.initialLabel;
+        btn.textContent = 'Legitimate Action';
         break;
       }
 
@@ -105,10 +106,11 @@ async function runAttackerSimulation() {
       }
 
       case 'ADV-09-ATTENUATION-BREACH': {
-        const parentCap = capMgr.issueCapability({ actionType: 'CLICK', targetFingerprint: atk.issuedScope });
+        const parentCap = capMgr.issueCapability({ actionType: 'CLICK', targetFingerprint: atk.issuedScope, stateHash: 'state_attacker_09' });
         const breachCheck = capMgr.verifyCapability(parentCap.capabilityId, {
           actionType: 'CLICK',
-          targetFingerprint: atk.attemptedScope
+          targetFingerprint: atk.attemptedScope,
+          stateHash: 'state_attacker_09'
         });
         defenseObserved = (!breachCheck.valid && breachCheck.reason.includes('Target fingerprint mismatch'));
         defenseReason = breachCheck.reason;
@@ -193,10 +195,10 @@ async function runAttackerSimulation() {
       id: 'MUT-06-TAMPERED-CAPABILITY-PAYLOAD',
       vector: 'Capability Signature Tampering',
       attempt: () => {
-        const legitimate = capMgr.issueCapability({ actionType: 'TRANSFER', targetFingerprint: 'tx:1' });
+        const legitimate = capMgr.issueCapability({ actionType: 'TRANSFER', targetFingerprint: 'tx:1', stateHash: 'state_hash_mut06' });
         // Attacker alters payload without updating cryptographic HMAC
         legitimate.payload.actionType = 'DELETE';
-        return capMgr.verifyCapability(legitimate.capabilityId, { actionType: 'DELETE' });
+        return capMgr.verifyCapability(legitimate.capabilityId, { actionType: 'DELETE', stateHash: 'state_hash_mut06' });
       },
       isBlocked: (res) => !res.valid && (res.reason.includes('HMAC signature invalid') || res.reason.includes('mismatch'))
     }

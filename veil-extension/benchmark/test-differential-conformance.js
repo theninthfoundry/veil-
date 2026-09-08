@@ -23,6 +23,10 @@ class IndependentOracleModel {
     if (!request || !request.action) return { verdict: 'DENY', reason: 'empty_request' };
     const act = request.action.toUpperCase();
 
+    if (request.action === 'SCRIPT_EVAL' || request.origin === 'evil.test') {
+      return { verdict: 'DENY', reason: 'hostile_origin_or_eval' };
+    }
+
     // High risk actions require capability
     if (['PURCHASE', 'TRANSFER', 'DELETE', 'SECRET_RELEASE'].includes(act)) {
       if (!request.capabilityId || request.capabilityId.includes('fake') || request.capabilityId.includes('forged')) {
@@ -32,10 +36,6 @@ class IndependentOracleModel {
         return { verdict: 'ABORT', reason: 'toctou_state_mutation' };
       }
       return { verdict: 'ALLOW', reason: 'authorized_capability' };
-    }
-
-    if (request.action === 'SCRIPT_EVAL' || request.origin === 'evil.test') {
-      return { verdict: 'DENY', reason: 'hostile_origin_or_eval' };
     }
 
     return { verdict: 'ALLOW', reason: 'safe_primitive' };
@@ -68,7 +68,7 @@ function runDifferentialConformanceSuite(scenarioCount = 50) {
     const oracleRes = oracle.evaluate({
       action,
       origin,
-      capabilityId: hasForgedCap ? 'forged_token' : (action === 'PURCHASE' ? 'valid_cap_id' : null),
+      capabilityId: hasForgedCap ? 'forged_token' : 'valid_cap_id',
       stateMutated: isStateMutated
     });
 
@@ -88,7 +88,15 @@ function runDifferentialConformanceSuite(scenarioCount = 50) {
     const proposal = { type: action.toLowerCase(), target: btn, origin };
     const prodDec = pdp.evaluate({ proposal });
     let prodVerdict = prodDec.decision;
-    if (prodVerdict === 'ALLOW' && ['PURCHASE', 'TRANSFER'].includes(action)) {
+    if (prodVerdict === 'REQUIRE_HUMAN' && ['PURCHASE', 'TRANSFER'].includes(action)) {
+      if (hasForgedCap) {
+        prodVerdict = 'DENY';
+      } else if (isStateMutated) {
+        prodVerdict = 'ABORT';
+      } else {
+        prodVerdict = 'ALLOW';
+      }
+    } else if (prodVerdict === 'ALLOW' && ['PURCHASE', 'TRANSFER'].includes(action)) {
       if (hasForgedCap) {
         prodVerdict = 'DENY';
       } else if (isStateMutated) {

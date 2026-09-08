@@ -109,7 +109,7 @@ function runMutationOracle() {
     '4. Mutate Capability Signature (HMAC Forgery)',
     () => {
       const forged = { ...validCap, signature: '0000000000000000000000000000000000000000000000000000000000000000' };
-      return capMgr.verifyCapability(forged.capabilityId);
+      return capMgr.verifyCapability(forged);
     },
     (res) => !res.valid
   );

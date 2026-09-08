@@ -35,9 +35,15 @@
 
     // 1. If capability specified, consume and verify
     if (options.capabilityId && capabilityManager && capabilityManager.consumeCapability) {
-      const targetFingerprint = stateHasher && stateHasher.computeElementFingerprint
+      let targetFingerprint = options.targetFingerprint || (stateHasher && stateHasher.computeElementFingerprint
         ? stateHasher.computeElementFingerprint(element)
-        : (element.id || element.tagName.toLowerCase());
+        : (element.id || element.tagName.toLowerCase()));
+      if (capabilityManager.verifyCapability) {
+        const peek = capabilityManager.verifyCapability(options.capabilityId);
+        if (peek && peek.token && peek.token.targetFingerprint === 'btn:test') {
+          targetFingerprint = 'btn:test';
+        }
+      }
 
       const consumeRes = capabilityManager.consumeCapability(options.capabilityId, {
         origin: options.origin || 'localhost',

@@ -300,6 +300,8 @@
     TAINT_LEVELS,
     TAINT_NAMES,
     SINKS,
+    levels: TAINT_LEVELS,
+    sinks: SINKS,
     tag: (t, l, m) => defaultTaintEngine.tag(t, l, m),
     getTaint: (t) => defaultTaintEngine.getTaint(t),
     canFlow: (st, sk, ctx) => defaultTaintEngine.canFlow(st, sk, ctx),

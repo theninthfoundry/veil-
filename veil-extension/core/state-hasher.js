@@ -39,14 +39,15 @@
    * @returns {string}
    */
   function computeElementFingerprint(element) {
-    if (!element || !element.tagName) return 'null_element';
-    const tag = element.tagName.toLowerCase();
-    const role = element.getAttribute('role') || element.getAttribute('type') || '';
+    if (!element) return 'null_element';
+    const getAttr = (typeof element.getAttribute === 'function') ? (attr) => element.getAttribute(attr) : () => null;
+    const tag = (element.tagName || '').toLowerCase();
+    const role = getAttr('role') || getAttr('type') || '';
     const id = element.id || '';
-    const name = element.getAttribute('name') || '';
-    const ariaLabel = element.getAttribute('aria-label') || '';
+    const name = getAttr('name') || '';
+    const ariaLabel = getAttr('aria-label') || '';
     const rawText = (element.textContent || '').trim().slice(0, 50).replace(/\s+/g, ' ');
-    const label = (ariaLabel || rawText || element.getAttribute('placeholder') || '').toLowerCase();
+    const label = (ariaLabel || rawText || getAttr('placeholder') || '').toLowerCase();
 
     return `${tag}:${role}:${id}:${name}:${label}`;
   }
@@ -62,7 +63,7 @@
       return { stateHash: 'empty_document_hash', elementCount: 0, canonicalSummary: '' };
     }
 
-    const interactiveSelector = 'button, input, select, textarea, a[href], [role="button"], [role="link"], [role="checkbox"], form';
+    const interactiveSelector = 'button, input, select, textarea, a[href], [role="button"], [role="link"], [role="checkbox"], form, [id*="price"], [id*="amount"], [id*="total"], [id*="balance"], [class*="price"], [class*="amount"]';
     const elements = doc.querySelectorAll(interactiveSelector);
 
     const canonicalLines = [];

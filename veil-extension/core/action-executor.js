@@ -111,7 +111,7 @@
       }
       // Path C: Remote attempted raw typing into sensitive element without Capability -> BLOCK
       else if (isSensitive) {
-        return { ok: false, reason: 'blocked-sensitive-field: Typing into sensitive field strictly requires Capability authorization' };
+        return { ok: false, reason: 'plaintext-typing-blocked: blocked-sensitive-field: Typing into sensitive field strictly requires Capability authorization' };
       }
 
       // Perform native DOM injection

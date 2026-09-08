@@ -235,6 +235,7 @@
       return {
         decision: 'DENY',
         riskLevel: 'BLOCKED',
+        level: 'BLOCKED',
         allowed: false,
         requiresHuman: false,
         requiresConfirmation: false,
@@ -249,6 +250,7 @@
       return {
         decision: 'REQUIRE_HUMAN',
         riskLevel: 'HIGH_RISK',
+        level: 'HIGH_RISK',
         allowed: false, // Cannot execute without user approval
         requiresHuman: true,
         requiresConfirmation: true,
@@ -262,6 +264,7 @@
       return {
         decision: 'ALLOW',
         riskLevel,
+        level: riskLevel,
         allowed: true,
         requiresHuman: false,
         requiresConfirmation: false,

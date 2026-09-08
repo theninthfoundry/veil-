@@ -77,13 +77,15 @@ function verifyInvariantI3() {
     actionType: 'CLICK',
     targetFingerprint: 'button:add_to_cart',
     origin: 'shop.example',
+    stateHash: 'state_hash_001',
     attenuation: capMgr.ATTENUATION_SCOPES.ELEMENT
   });
 
   const scopeViolation = capMgr.verifyCapability(attenuatedCap.capabilityId, {
     origin: 'shop.example',
     actionType: 'CLICK',
-    targetFingerprint: 'button:checkout_final' // Different target
+    targetFingerprint: 'button:checkout_final', // Different target
+    stateHash: 'state_hash_001'
   });
 
   if (!scopeViolation.valid && scopeViolation.reason.includes('Target fingerprint mismatch')) {

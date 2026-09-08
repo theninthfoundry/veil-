@@ -32,12 +32,14 @@
     }
 
     // 1. Check for prompt injection canary or tainted credential
-    if (options.textTaint && taintEngine) {
-      const taint = taintEngine.getTaint(text);
-      if (taint.level >= taintEngine.TAINT_LEVELS.FINANCIAL_SECRET && !options.capabilityId) {
+    if (taintEngine) {
+      const liveTaint = taintEngine.getTaint(text);
+      const effectiveLevel = Math.max(options.textTaint || 0, (liveTaint && liveTaint.level) || 0);
+      if (effectiveLevel >= taintEngine.TAINT_LEVELS.FINANCIAL_SECRET && !options.capabilityId) {
+        const taintName = (taintEngine.TAINT_NAMES && taintEngine.TAINT_NAMES[effectiveLevel]) || 'CREDENTIAL';
         return {
           allowed: false,
-          reason: `Clipboard write blocked: Exfiltration of high-taint data (${taint.name}) requires explicit capability`
+          reason: `Clipboard write blocked: Exfiltration of high-taint data (${taintName}) requires explicit capability`
         };
       }
     }

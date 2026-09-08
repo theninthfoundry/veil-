@@ -62,33 +62,49 @@ function verifyReceipt(receipt) {
     }
 
     // 2. Recompute and check payload hash
-    const cleanDetail = evt.detail || {};
-    const serializedPayload = canonicalStringify(cleanDetail);
-    const calculatedPayloadHash = sha256(serializedPayload);
+    if (evt.payloadHash !== undefined) {
+      const cleanDetail = evt.detail || {};
+      const serializedPayload = canonicalStringify(cleanDetail);
+      const calculatedPayloadHash = sha256(serializedPayload);
 
-    if (calculatedPayloadHash !== evt.payloadHash) {
-      errors.push(`Tampered payload hash at event index ${i}: calculated ${calculatedPayloadHash}, stored ${evt.payloadHash}`);
-      return { verdict: 'TAMPERED', verifiedEvents: verifiedCount, headHash: '', sessionRootValid: false, errors };
+      if (calculatedPayloadHash !== evt.payloadHash) {
+        errors.push(`Tampered payload hash at event index ${i}: calculated ${calculatedPayloadHash}, stored ${evt.payloadHash}`);
+        return { verdict: 'TAMPERED', verifiedEvents: verifiedCount, headHash: '', sessionRootValid: false, errors };
+      }
+
+      // 3. Recompute and check header hash
+      const headerString = `${evt.prevHash}:${evt.eventIndex}:${evt.timestamp}:${evt.type}:${evt.payloadHash}`;
+      const calculatedEventHash = sha256(headerString);
+
+      if (calculatedEventHash !== evt.hash) {
+        errors.push(`Tampered event header hash at event index ${i}: recomputed ${calculatedEventHash}, stored ${evt.hash}`);
+        return { verdict: 'TAMPERED', verifiedEvents: verifiedCount, headHash: '', sessionRootValid: false, errors };
+      }
+
+      expectedPrev = evt.hash;
+    } else {
+      // Spec-11 canonical event format: { prevHash, payload, eventHash }
+      const declaredEventHash = evt.eventHash || evt.hash;
+      const calc1 = sha256(evt.prevHash + JSON.stringify(evt.payload || {}));
+      const calc2 = sha256(evt.prevHash + canonicalStringify(evt.payload || {}));
+
+      if (declaredEventHash !== calc1 && declaredEventHash !== calc2) {
+        errors.push(`Tampered event hash at index ${i}: declared ${declaredEventHash}`);
+        return { verdict: 'TAMPERED', verifiedEvents: verifiedCount, headHash: '', sessionRootValid: false, errors };
+      }
+
+      expectedPrev = declaredEventHash;
     }
 
-    // 3. Recompute and check header hash
-    const headerString = `${evt.prevHash}:${evt.eventIndex}:${evt.timestamp}:${evt.type}:${evt.payloadHash}`;
-    const calculatedEventHash = sha256(headerString);
-
-    if (calculatedEventHash !== evt.hash) {
-      errors.push(`Tampered event header hash at event index ${i}: recomputed ${calculatedEventHash}, stored ${evt.hash}`);
-      return { verdict: 'TAMPERED', verifiedEvents: verifiedCount, headHash: '', sessionRootValid: false, errors };
-    }
-
-    expectedPrev = evt.hash;
     verifiedCount++;
   }
 
   // 4. Verify terminal head hash matches claimed headHash
   const finalEvent = receipt.chain[receipt.chain.length - 1];
-  if (receipt.headHash && receipt.headHash !== finalEvent.hash) {
-    errors.push(`Claimed headHash "${receipt.headHash}" does not match final event hash "${finalEvent.hash}"`);
-    return { verdict: 'TAMPERED', verifiedEvents: verifiedCount, headHash: finalEvent.hash, sessionRootValid: false, errors };
+  const finalHash = finalEvent.hash || finalEvent.eventHash;
+  if (receipt.headHash && receipt.headHash !== finalHash) {
+    errors.push(`Claimed headHash "${receipt.headHash}" does not match final event hash "${finalHash}"`);
+    return { verdict: 'TAMPERED', verifiedEvents: verifiedCount, headHash: finalHash, sessionRootValid: false, errors };
   }
 
   // 5. Verify session root if checkpoints exist
@@ -100,6 +116,11 @@ function verifyReceipt(receipt) {
     if (!sessionRootValid) {
       errors.push(`Session root mismatch: calculated ${calculatedRoot}, claimed ${receipt.sessionRoot}`);
     }
+  } else if (receipt.sessionRoot && !Array.isArray(receipt.checkpoints)) {
+    sessionRootValid = (receipt.sessionRoot === finalHash);
+    if (!sessionRootValid) {
+      errors.push(`Session root mismatch: expected ${finalHash}, claimed ${receipt.sessionRoot}`);
+    }
   }
 
   const verdict = errors.length === 0 ? 'VALID' : (verifiedCount > 0 ? 'TAMPERED' : 'INVALID');
@@ -107,7 +128,7 @@ function verifyReceipt(receipt) {
   return {
     verdict,
     verifiedEvents: verifiedCount,
-    headHash: finalEvent.hash,
+    headHash: finalHash,
     sessionRootValid,
     errors
   };

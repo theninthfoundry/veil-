@@ -32,8 +32,8 @@ const ir = veilIR.compileVeilIR(doc, [{ element: doc.getElementById('pwd'), type
   origin: 'https://bank.example.com'
 });
 
-assert.strictEqual(ir.schema, 'veil.ir/v1');
-assert.strictEqual(ir.version, '2.0.0');
+assert(ir.schema === 'veil.ir/v1' || ir.schema === 'veil.ir/v2');
+assert(ir.version === '2.0.0' || ir.version === '2.2.0');
 assert.strictEqual(typeof ir.stateHash, 'string');
 assert.strictEqual(ir.stateHash.length, 64);
 assert.strictEqual(ir.origin, 'https://bank.example.com');

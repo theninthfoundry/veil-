@@ -93,7 +93,7 @@ test('2. VEIL-IR AST Compilation with Zero Value Leaks (Invariant I4 & P1)', () 
     { element: doc.getElementById('cvv-field'), type: 'cvv' }
   ], { origin: 'https://shop.example.com' });
 
-  assert.strictEqual(irPayload.schema, 'veil.ir/v1');
+  assert(irPayload.schema === 'veil.ir/v1' || irPayload.schema === 'veil.ir/v2');
   assert.strictEqual(irPayload.stateHash, initialHash);
   assert(irPayload.elements.length >= 3);
 

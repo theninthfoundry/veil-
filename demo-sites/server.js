@@ -103,7 +103,7 @@ const server = http.createServer((req, res) => {
 if (require.main === module) {
   const isTest = process.argv.includes('--test');
 
-  server.listen(PORT, () => {
+  server.listen(PORT, '0.0.0.0', () => {
     console.log('='.repeat(75));
     console.log('🛡️  VEIL INTERNET-IN-A-BOX — LOCAL DEMO ENVIRONMENT');
     console.log('='.repeat(75));

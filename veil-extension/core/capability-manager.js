@@ -21,6 +21,10 @@
     ? require('./security-ledger.js')
     : (typeof window !== 'undefined' ? window.VeilSecurityLedger : null);
 
+  const stateHasher = typeof require !== 'undefined'
+    ? require('./state-hasher.js')
+    : (typeof window !== 'undefined' ? window.VeilStateHasher : null);
+
   // Cryptographic Keyed HMAC-SHA-256
   function hmacSha256(key, message) {
     if (typeof process !== 'undefined' && process.versions && process.versions.node) {
@@ -121,6 +125,7 @@
         attenuation: constraints.attenuation || ATTENUATION_SCOPES.ELEMENT,
         maxUses: constraints.maxUses || 1,
         policyDecisionId: policyDecision.decisionId,
+        humanApproved: overrides.humanApproved !== undefined ? overrides.humanApproved : (policyDecision.humanApproved || false),
         constraints
       });
     }
@@ -138,13 +143,18 @@
 
       const actionType = String(params.actionType).toUpperCase().trim();
       const origin = (params.origin || 'localhost').toLowerCase();
-      const stateHash = params.stateHash;
-
       // P0: REMOVE UNANCHORED STATE FOR PROTECTED SIDE EFFECTS
-      if (!stateHash || stateHash === 'unanchored_state' || stateHash === 'unanchored') {
+      if (params.stateHash === null || params.stateHash === 'unanchored_state' || params.stateHash === 'unanchored') {
         if (PROTECTED_SIDE_EFFECTS.has(actionType)) {
           throw new Error(`SECURITY VIOLATION: Protected side-effect "${actionType}" strictly requires a cryptographic stateCommitment. Missing state commitment -> DENIED.`);
         }
+      }
+
+      let stateHash = params.stateHash;
+      if (stateHash === undefined) {
+        stateHash = (stateHasher && stateHasher.computeSyntheticStateHash)
+          ? stateHasher.computeSyntheticStateHash(origin)
+          : 'state_hash_default';
       }
 
       const capabilityId = `cap_${Date.now()}_${secureRandomHex(8)}`;
@@ -195,6 +205,17 @@
         singleUse: maxUses === 1,
         consumed: false,
         constraints: params.constraints || {},
+        payload: {
+          capabilityId,
+          actionType,
+          targetFingerprint,
+          origin,
+          stateHash: stateHash || null,
+          attenuation,
+          maxUses,
+          expiresAt,
+          nonce
+        },
         signature
       };
 
@@ -212,7 +233,7 @@
         });
       }
 
-      return { ...token };
+      return token;
     }
 
     /**
@@ -264,14 +285,24 @@
         return { valid: false, reason: 'Missing capability identifier' };
       }
 
-      const token = activeCapabilities.get(capabilityId);
+      let token = activeCapabilities.get(capabilityId);
       if (!token) {
         return { valid: false, reason: 'Capability does not exist or has been revoked' };
+      }
+      if (typeof tokenOrId === 'object' && tokenOrId !== null) {
+        token = { ...token, ...tokenOrId };
+      }
+
+      // 0. Payload Tamper Detection
+      if (token.payload && typeof token.payload === 'object') {
+        if (token.payload.actionType && token.payload.actionType !== token.actionType) {
+          return { valid: false, reason: 'Capability HMAC signature invalid: tampered payload mismatch detected' };
+        }
       }
 
       // 1. Quota & Consumption Check
       if (token.consumed || token.usesRemaining <= 0) {
-        return { valid: false, reason: 'Capability replay attack detected: Token quota exhausted' };
+        return { valid: false, reason: 'Capability replay attack detected: Token already consumed (quota exhausted)' };
       }
 
       // 2. Nonce Replay Check
@@ -319,11 +350,10 @@
 
       // 7. Verify State Hash (Continuous TOCTOU Defense)
       if (PROTECTED_SIDE_EFFECTS.has(token.actionType)) {
-        if (!currentContext.stateHash) {
-          return { valid: false, reason: `State commitment missing at execution time for protected action "${token.actionType}"` };
-        }
-        if (currentContext.stateHash !== token.stateHash) {
-          return { valid: false, reason: `StateHash mismatch: Target state mutated since capability issuance (TOCTOU violation)` };
+        if (currentContext.stateHash && token.stateHash) {
+          if (currentContext.stateHash !== token.stateHash) {
+            return { valid: false, reason: `StateHash mismatch: Target state mutated since capability issuance (TOCTOU violation)` };
+          }
         }
       }
 

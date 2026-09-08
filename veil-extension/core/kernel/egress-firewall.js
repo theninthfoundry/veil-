@@ -50,6 +50,7 @@
 
   const BLOCKED_DOMAINS = [
     'evil.com',
+    'evil.test',
     'attacker.xyz',
     'phishing.ru',
     'exfiltration.io',
@@ -116,6 +117,15 @@
           violations.push(`Canary exfiltration detected: ${canary}`);
         }
       }
+      const dynamicCanaries = targetString.match(/VEIL_CANARY_[A-Za-z0-9_]+/g);
+      if (dynamicCanaries) {
+        for (const can of dynamicCanaries) {
+          if (!foundCanaries.includes(can)) {
+            foundCanaries.push(can);
+            violations.push(`Canary exfiltration detected: ${can}`);
+          }
+        }
+      }
 
       // 4. Raw Secret / PII Leak Check
       // Only permit if there's an explicit SECRET_RELEASE capability for this origin
@@ -143,7 +153,7 @@
       if (taintEngine && params.body) {
         const taint = taintEngine.getTaint(params.body);
         const flowCheck = taintEngine.canFlow(taint.level, taintEngine.sinks.REMOTE_EGRESS, {
-          sourceOrigin: location.origin || 'localhost',
+          sourceOrigin: (typeof location !== 'undefined' && location.origin) || 'localhost',
           sinkOrigin: targetOrigin,
           hasCapability: Boolean(params.capability)
         });
@@ -180,6 +190,14 @@
         targetOrigin
       };
     }
+
+    isBlacklisted(url) {
+      const target = String(url || '');
+      for (const blocked of this.blockedDomains) {
+        if (target.includes(blocked)) return true;
+      }
+      return false;
+    }
   }
 
   const defaultEgressFirewall = new EgressFirewall();
@@ -188,6 +206,7 @@
     EgressFirewall,
     defaultEgressFirewall,
     inspectOutbound: (p) => defaultEgressFirewall.inspectOutbound(p),
+    isBlacklisted: (url) => defaultEgressFirewall.isBlacklisted(url),
     CANARY_TOKENS
   };
 

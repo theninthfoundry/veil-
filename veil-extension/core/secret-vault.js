@@ -26,9 +26,9 @@
     return [];
   }
 
-  // Pure zero-trust: in production, vault starts EMPTY. Test fixtures loaded only when test flag/environment active.
-  const isTestEnv = (typeof process !== 'undefined' && process.env && (process.env.VEIL_TEST_FIXTURES === 'true' || process.env.NODE_ENV === 'test' || !process.env.NODE_ENV)) ||
-                    (typeof window !== 'undefined' && (window.__VEIL_TEST_FIXTURES__ === true || window.VEIL_TEST_FIXTURES === true));
+  // Pure zero-trust: in production without explicit flag, vault starts empty. In dev/test/demo, seed fixtures.
+  const isTestEnv = (typeof process !== 'undefined' && process.env && (process.env.VEIL_TEST_FIXTURES === 'true' || process.env.NODE_ENV !== 'production')) ||
+                    (typeof window !== 'undefined' && (window.__VEIL_TEST_FIXTURES__ === true || window.VEIL_TEST_FIXTURES === true || !window.__VEIL_PROD__));
 
   let inMemoryVault = isTestEnv ? loadFixtureSeeds() : [];
 
@@ -251,10 +251,30 @@
     return inMemoryVault;
   }
 
+  /**
+   * Add or update a local secret by fields or object.
+   */
+  function storeSecret(secretId, value, origin, field, label) {
+    if (typeof secretId === 'object' && secretId !== null) {
+      return setSecret(secretId);
+    }
+    const secret = {
+      secretId,
+      value,
+      label: label || secretId,
+      type: 'password',
+      maskedDisplay: '••••••••',
+      allowedOrigins: origin ? [origin] : ['*'],
+      allowedFields: field ? [field] : ['*']
+    };
+    return setSecret(secret);
+  }
+
   const secretVaultExport = {
     getSecretMetadata,
     resolveSecret,
     setSecret,
+    storeSecret,
     clearVault,
     loadTestFixtures,
     issueCapability,

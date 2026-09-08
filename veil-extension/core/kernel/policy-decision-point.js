@@ -67,7 +67,7 @@
     blockCoordinates: true,
     blockUntrustedOrigins: true,
     allowedOrigins: ['localhost', '127.0.0.1'],
-    blockedOrigins: ['phishing.ru', 'evil.com', 'tracker.ad']
+    blockedOrigins: ['phishing.ru', 'evil.com', 'evil.test', 'tracker.ad']
   };
 
   class PolicyDecisionPoint {
@@ -91,7 +91,7 @@
      */
     evaluate(params = {}) {
       const proposal = params.proposal || {};
-      const origin = (params.origin || 'localhost').toLowerCase();
+      const origin = (params.origin || proposal.origin || 'localhost').toLowerCase();
       const stateHash = params.stateHash || 'unanchored_state';
       const targetElement = params.targetElement || null;
       const targetFingerprint = params.targetFingerprint || (targetElement && targetElement.id) || 'any';

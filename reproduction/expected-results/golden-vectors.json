@@ -4,7 +4,7 @@
     "receiptType": "VEIL_SECURITY_RECEIPT",
     "receiptId": "rec_golden_001",
     "genesisHash": "0000000000000000000000000000000000000000000000000000000000000000",
-    "sessionRoot": "6c4578142ceba5dd831201552efc464eef6ff236e7a27509d3daef04c0ec1858",
+    "sessionRoot": "9f3e28226c9bc32a6263fb1ac5da3837130be823f1088d7794a4f9758360f59a",
     "chain": [
       {
         "prevHash": "0000000000000000000000000000000000000000000000000000000000000000",
@@ -13,16 +13,16 @@
           "intent": "checkout",
           "actionType": "EFFECT_INTERACT_CLICK"
         },
-        "eventHash": "bfaeaeb040ee2bfd1bead303d8a7ff2215c0e0b3e6ffb564e9e0fa95a7304f58"
+        "eventHash": "48499f3041a0ad1c4468f8c2e976be566eaa6a553851292313d0cf48e6fdd9f0"
       },
       {
-        "prevHash": "bfaeaeb040ee2bfd1bead303d8a7ff2215c0e0b3e6ffb564e9e0fa95a7304f58",
+        "prevHash": "48499f3041a0ad1c4468f8c2e976be566eaa6a553851292313d0cf48e6fdd9f0",
         "payload": {
           "type": "CAPABILITY_ISSUED",
           "capabilityId": "cap_gold_01",
           "nonce": "nonce_gold_01"
         },
-        "eventHash": "6c4578142ceba5dd831201552efc464eef6ff236e7a27509d3daef04c0ec1858"
+        "eventHash": "9f3e28226c9bc32a6263fb1ac5da3837130be823f1088d7794a4f9758360f59a"
       }
     ]
   },
@@ -30,7 +30,7 @@
     "receiptType": "VEIL_SECURITY_RECEIPT",
     "receiptId": "rec_golden_tampered",
     "genesisHash": "0000000000000000000000000000000000000000000000000000000000000000",
-    "sessionRoot": "6c4578142ceba5dd831201552efc464eef6ff236e7a27509d3daef04c0ec1858",
+    "sessionRoot": "9f3e28226c9bc32a6263fb1ac5da3837130be823f1088d7794a4f9758360f59a",
     "chain": [
       {
         "prevHash": "0000000000000000000000000000000000000000000000000000000000000000",
@@ -39,7 +39,7 @@
           "intent": "STEAL_USER_DATA_TAMPERED",
           "actionType": "EFFECT_INTERACT_CLICK"
         },
-        "eventHash": "bfaeaeb040ee2bfd1bead303d8a7ff2215c0e0b3e6ffb564e9e0fa95a7304f58"
+        "eventHash": "48499f3041a0ad1c4468f8c2e976be566eaa6a553851292313d0cf48e6fdd9f0"
       }
     ]
   },
@@ -50,7 +50,7 @@
     "nonce": "nonce_gold_101",
     "createdAt": 1725619200000,
     "expiresAt": 1925619200000,
-    "signature": "3c7bfe83cff501ad982755e0930a08e1694f4a3ea30df4598285514f762699f8"
+    "signature": "9dfb11c6733083baee11b66cdfd37ee0198b277321588f6214ce26d44c8257e2"
   },
   "validPcaBundle": {
     "pcaId": "pca_gold_201",
@@ -64,8 +64,8 @@
       "pcaId": "pca_gold_201",
       "nonce": "nonce_pca_201",
       "preStateHash": "0x_pre_state_hash_abc",
-      "actionDigest": "2b3117fe28e7bbd743a3e66014caec6919dfae981bc88cfd3d379058b73f8d68",
-      "authorizationSignature": "c005fbc294c6f50567f85806c9a3bf8bf71bc30983226db2e9644fcfda98ee73"
+      "actionDigest": "728f50c49460f706cf41bf8d08586d25436d9a783b2d8e7b64c041b70d047185",
+      "authorizationSignature": "21388743a10efe4f3510bddbfd12d647a570640b51c2a4509781970d579a2bda"
     },
     "postProof": {
       "pcaId": "pca_gold_201",
@@ -73,7 +73,7 @@
       "postStateHash": "0x_post_state_hash_xyz",
       "success": true,
       "receiptId": "rec_pca_201",
-      "completionSignature": "5b95a8f2762ebbbca7c86720e50529d1cba103328ebbc186bfcb91ce07842600"
+      "completionSignature": "401cc2de2bd67dd9a93cfca4e9dd13ff19cd39980b91ed69aad63bea4ad3e7b7"
     }
   },
   "policyVectors": [

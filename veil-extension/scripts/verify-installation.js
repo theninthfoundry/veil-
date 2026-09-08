@@ -35,7 +35,7 @@ async function runAll() {
   // 1. Manifest Check
   await check('1. Manifest v3 Structure & Content Scripts', () => {
     const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'manifest.json'), 'utf8'));
-    return manifest.manifest_version === 3 && manifest.version === '1.0.0' && manifest.content_scripts.length > 0;
+    return manifest.manifest_version === 3 && (manifest.version === '1.0.0' || manifest.version.startsWith('3.')) && manifest.content_scripts.length > 0;
   });
 
   // 2. Core Session Manager
